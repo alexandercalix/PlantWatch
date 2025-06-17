@@ -11,6 +11,8 @@ namespace PlantWatch.Drivers.Siemens.Models
         public string Datatype { get; init; }
         public string Address { get; init; }
         public bool Quality { get; internal set; }
+        public bool Disabled { get; set; } = false;
+
 
         private object _value;
 

@@ -9,5 +9,7 @@ namespace PlantWatch.Core.Models.Drivers
         string Address { get; }
         bool Quality { get; }
         object Value { get; set; }
+        bool Disabled { get; set; }
+
     }
 }

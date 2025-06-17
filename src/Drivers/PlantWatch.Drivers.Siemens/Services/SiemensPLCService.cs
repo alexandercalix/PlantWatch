@@ -7,6 +7,7 @@ using PlantWatch.Core.Models.Drivers;
 using PlantWatch.Core.Services.Drivers;
 using PlantWatch.Drivers.Siemens.Models;
 using S7.Net;
+using S7.Net.Types;
 
 namespace PlantWatch.Drivers.Siemens.Services;
 
@@ -24,6 +25,10 @@ public class SiemensPLCService : IPLCService
     public IEnumerable<ITag> Tags => _tags;
     public bool IsConnected => _client.IsConnected;
     public bool IsRunning => _cycleTask != null && !_cycleTask.IsCompleted;
+
+    private bool _diagnosticMode = true;
+    private int _consecutiveFailures = 0;
+    private const int FailureThreshold = 3; // configurable
 
     public SiemensPLCService(string name, string ipAddress, short rack, short slot, List<SiemensTag> tags)
     {
@@ -44,10 +49,20 @@ public class SiemensPLCService : IPLCService
 
     public async Task StopAsync()
     {
-        if (!IsRunning) return;
+        if (!IsRunning)
+            return;
 
         _cts.Cancel();
-        await _cycleTask;
+
+        try
+        {
+            await _cycleTask;
+        }
+        catch (OperationCanceledException)
+        {
+            // esperado, no hay problema
+            Console.WriteLine("[PLC] Cycle task canceled cleanly.");
+        }
     }
 
     private async Task ConnectAsync()
@@ -66,8 +81,52 @@ public class SiemensPLCService : IPLCService
         }
     }
 
+    private async Task<bool> RunInitialDiagnostics()
+    {
+        Console.WriteLine("[PLC] Running initial diagnostic pass...");
+
+        var tagsToCheck = _tags.Where(t => !t.Disabled).ToList();
+        bool allValid = true;
+
+        foreach (var tag in tagsToCheck)
+        {
+            Console.WriteLine($"[PLC] Validating tag: {tag.Name}");
+
+            try
+            {
+                await _client.ReadMultipleVarsAsync(new List<DataItem> { tag.Item });
+                tag.Quality = tag.Item?.Value != null;
+            }
+            catch (Exception ex)
+            {
+                tag.Quality = false;
+
+                if (ex.Message.Contains("Address out of range"))
+                {
+                    tag.Disabled = true;
+                    Console.WriteLine($"[Tag Disabled] {tag.Name}: permanently excluded due to invalid address.");
+                }
+                else
+                {
+                    Console.WriteLine($"[Tag Error] {tag.Name}: {ex.Message}");
+                }
+
+                allValid = false;
+            }
+        }
+
+        return allValid;
+    }
+
+
     private async Task Cycle(CancellationToken token)
     {
+        bool _diagnosticMode = true;
+        int _consecutiveFailures = 0;
+        bool wasConnected = false;
+        const int FailureThreshold = 3;
+        bool hasDiagnosed = false;
+
         while (!token.IsCancellationRequested)
         {
             try
@@ -75,23 +134,71 @@ public class SiemensPLCService : IPLCService
                 await _semaphore.WaitAsync(token);
 
                 if (!_client.IsConnected)
-                    await ConnectAsync();
-
-                var items = _tags.Select(t => t.Item).ToList();
-
-                for (int i = 0; i < items.Count; i += 19)
                 {
-                    var batch = items.Skip(i).Take(19).ToList();
-                    await _client.ReadMultipleVarsAsync(batch);
+                    Console.WriteLine("[PLC] Attempting to connect...");
+                    await ConnectAsync();
+                    wasConnected = false;
+                    hasDiagnosed = false;
+                    await Task.Delay(1000, token);
+                    continue;
+                }
+                else
+                {
+                    if (!wasConnected)
+                    {
+                        Console.WriteLine("[PLC] Connected. Running diagnostics...");
+                        _diagnosticMode = await RunInitialDiagnostics();
+                        hasDiagnosed = true;
+                        wasConnected = true;
+                    }
+
+                    if (_diagnosticMode)
+                    {
+                        Console.WriteLine("[PLC] Re-validating tags...");
+                        _diagnosticMode = !await RunInitialDiagnostics();
+                    }
+                    else
+                    {
+                        try
+                        {
+                            var items = _tags
+                                .Where(t => !t.Disabled)
+                                .Select(t => t.Item)
+                                .ToList();
+
+                            for (int i = 0; i < items.Count; i += 19)
+                            {
+                                var batch = items.Skip(i).Take(19).ToList();
+                                await _client.ReadMultipleVarsAsync(batch);
+                            }
+
+                            foreach (var tag in _tags.Where(t => !t.Disabled))
+                                tag.Quality = tag.Item?.Value != null;
+
+                            _consecutiveFailures = 0;
+                        }
+                        catch (Exception ex)
+                        {
+                            _consecutiveFailures++;
+                            Console.WriteLine($"[PLC] Bulk read failed ({_consecutiveFailures}): {ex.Message}");
+
+                            if (_consecutiveFailures >= FailureThreshold)
+                            {
+                                Console.WriteLine("[PLC] Too many failures. Switching back to diagnostic mode.");
+                                _diagnosticMode = true;
+                                _consecutiveFailures = 0;
+                            }
+                        }
+                    }
                 }
             }
             catch (OperationCanceledException)
             {
-                // Normal stop
+                break;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Cycle error: {ex.Message}");
+                Console.WriteLine($"[Cycle Error] Unexpected: {ex.Message}");
             }
             finally
             {
@@ -99,12 +206,13 @@ public class SiemensPLCService : IPLCService
                     _semaphore.Release();
             }
 
-            await Task.Delay(100); // adjustable
+            await Task.Delay(100, token);
         }
 
         if (_client.IsConnected)
             _client.Close();
     }
+
 
     public async Task<bool> WriteTagAsync(string tagName, object value)
     {
@@ -129,5 +237,12 @@ public class SiemensPLCService : IPLCService
         {
             _semaphore.Release();
         }
+    }
+
+    public void ForceRemap()
+    {
+        Console.WriteLine("[PLC] Manual remap requested.");
+        _diagnosticMode = true;
+        _consecutiveFailures = 0;
     }
 }

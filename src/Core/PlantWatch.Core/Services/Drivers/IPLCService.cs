@@ -17,6 +17,8 @@ namespace PlantWatch.Core.Services.Drivers
         Task StartAsync();
         Task StopAsync();
         Task<bool> WriteTagAsync(string tagName, object value);
+
+        void ForceRemap();
     }
 
 }
