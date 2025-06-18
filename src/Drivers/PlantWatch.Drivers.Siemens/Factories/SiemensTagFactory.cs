@@ -9,11 +9,12 @@ namespace PlantWatch.Drivers.Siemens.Factories;
 
 public static class SiemensTagFactory
 {
-    public static SiemensTag Create(Guid id, string name, string datatype, string address, object value)
+    public static SiemensTag Create(Guid id, string name, string datatype, string address)
     {
         var validatedType = ValidateDatatype(datatype);
+        var defaultValue = GetDefaultForDatatype(validatedType);
 
-        var tag = new SiemensTag(id, name, validatedType, address, value)
+        var tag = new SiemensTag(id, name, validatedType, address, defaultValue)
         {
             Item = new DataItem
             {
@@ -23,11 +24,26 @@ public static class SiemensTagFactory
                 DB = ParseDbNumber(address),
                 StartByteAdr = ParseByteOffset(address),
                 BitAdr = ParseBitOffset(address),
-                Value = value
+                Value = defaultValue
             }
         };
 
         return tag;
+    }
+
+    private static object GetDefaultForDatatype(string datatype)
+    {
+        return datatype switch
+        {
+            "Bool" => false,
+            "Byte" => (byte)0,
+            "Word" => (ushort)0,
+            "DWord" => (uint)0,
+            "Int" => (short)0,
+            "DInt" => 0,
+            "Real" => 0.0f,
+            _ => throw new ArgumentException($"Unsupported datatype: {datatype}")
+        };
     }
 
     private static string ValidateDatatype(string datatype)
@@ -71,16 +87,29 @@ public static class SiemensTagFactory
 
     private static int ParseByteOffset(string address)
     {
-        var dbMatch = Regex.Match(address, @"^DB(\d+)\.DB[XDW](\d+)");
+        // Handle DB area
+        var dbMatch = Regex.Match(address, @"^DB(\d+)\.DB(X|W|D)(\d+)", RegexOptions.IgnoreCase);
         if (dbMatch.Success)
-            return int.Parse(dbMatch.Groups[2].Value);
+        {
+            return int.Parse(dbMatch.Groups[3].Value);
+        }
 
-        var areaMatch = Regex.Match(address, @"^[MIQ](B|W|D)?X?(\d+)(?:\.\d+)?$");
-        if (areaMatch.Success)
-            return int.Parse(areaMatch.Groups[2].Value);
+        // Handle Memory/Input/Output area (M, I, Q)
+        var mwMatch = Regex.Match(address, @"^[MIQ](B|W|D)(\d+)$", RegexOptions.IgnoreCase);
+        if (mwMatch.Success)
+        {
+            return int.Parse(mwMatch.Groups[2].Value);
+        }
+
+        var mbBitMatch = Regex.Match(address, @"^[MIQ](\d+)\.(\d+)$");
+        if (mbBitMatch.Success)
+        {
+            return int.Parse(mbBitMatch.Groups[1].Value);
+        }
 
         throw new ArgumentException($"Invalid address format for byte offset: {address}");
     }
+
 
     private static byte ParseBitOffset(string address)
     {

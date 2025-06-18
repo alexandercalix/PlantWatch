@@ -9,22 +9,24 @@ public class SiemensTagFactoryTests
     public void Create_ValidInputs_ShouldBuildTagCorrectly()
     {
         // Arrange
+        var id = Guid.NewGuid();
         var name = "Tag1";
         var datatype = "Int";
         var address = "DB1.DBW0";
-        var defaultValue = 123;
 
         // Act
-        var tag = SiemensTagFactory.Create(name, datatype, address, defaultValue);
+        var tag = SiemensTagFactory.Create(id, name, datatype, address);
 
         // Assert
         Assert.NotNull(tag);
+        Assert.Equal(id, tag.Id);
         Assert.Equal(name, tag.Name);
         Assert.Equal(datatype, tag.Datatype);
         Assert.Equal(address, tag.Address);
-        Assert.Equal(defaultValue, tag.Value);
         Assert.NotNull(tag.Item);
         Assert.Equal(123, tag.Item.Value);
+        Assert.False(tag.Disabled);
+        Assert.False(tag.Quality);
     }
 
     [Theory]
@@ -33,12 +35,30 @@ public class SiemensTagFactoryTests
     public void Create_InvalidDatatype_ShouldThrow(string invalidDatatype)
     {
         // Arrange
+        var id = Guid.NewGuid();
         var name = "TagX";
         var address = "DB1.DBW0";
-        var value = 0;
 
         // Act & Assert
         Assert.Throws<ArgumentException>(() =>
-            SiemensTagFactory.Create(name, invalidDatatype, address, value));
+            SiemensTagFactory.Create(id, name, invalidDatatype, address));
     }
+
+    [Theory]
+    [InlineData("DB1.DBW")]
+    [InlineData("M100")]
+    [InlineData("InvalidFormat")]
+    public void Create_InvalidAddress_ShouldThrow(string invalidAddress)
+    {
+        // Arrange
+        var id = Guid.NewGuid();
+        var name = "TagY";
+        var datatype = "Bool";
+
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() =>
+            SiemensTagFactory.Create(id, name, datatype, invalidAddress));
+    }
+
+
 }

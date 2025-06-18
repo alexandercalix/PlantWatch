@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlantWatch.LiveTestApp", "T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlantWatch.DriverRuntime", "Drivers\PlantWatch.DriverRuntime\PlantWatch.DriverRuntime.csproj", "{F4CEA5E6-5E22-4B15-B468-E9E55E02C5D0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlantWatch.DriverRuntime.Tests", "Tests\PlantWatch.DriverRuntime.Tests\PlantWatch.DriverRuntime.Tests.csproj", "{A52B76FE-2F37-495E-BDEC-313B2DA0AE6A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -91,6 +93,18 @@ Global
 		{F4CEA5E6-5E22-4B15-B468-E9E55E02C5D0}.Release|x64.Build.0 = Release|Any CPU
 		{F4CEA5E6-5E22-4B15-B468-E9E55E02C5D0}.Release|x86.ActiveCfg = Release|Any CPU
 		{F4CEA5E6-5E22-4B15-B468-E9E55E02C5D0}.Release|x86.Build.0 = Release|Any CPU
+		{A52B76FE-2F37-495E-BDEC-313B2DA0AE6A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A52B76FE-2F37-495E-BDEC-313B2DA0AE6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A52B76FE-2F37-495E-BDEC-313B2DA0AE6A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A52B76FE-2F37-495E-BDEC-313B2DA0AE6A}.Debug|x64.Build.0 = Debug|Any CPU
+		{A52B76FE-2F37-495E-BDEC-313B2DA0AE6A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A52B76FE-2F37-495E-BDEC-313B2DA0AE6A}.Debug|x86.Build.0 = Debug|Any CPU
+		{A52B76FE-2F37-495E-BDEC-313B2DA0AE6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A52B76FE-2F37-495E-BDEC-313B2DA0AE6A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A52B76FE-2F37-495E-BDEC-313B2DA0AE6A}.Release|x64.ActiveCfg = Release|Any CPU
+		{A52B76FE-2F37-495E-BDEC-313B2DA0AE6A}.Release|x64.Build.0 = Release|Any CPU
+		{A52B76FE-2F37-495E-BDEC-313B2DA0AE6A}.Release|x86.ActiveCfg = Release|Any CPU
+		{A52B76FE-2F37-495E-BDEC-313B2DA0AE6A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -102,5 +116,6 @@ Global
 		{1B5980E6-EF5C-6277-9477-31F21C2DD2D5} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{26B782BD-F2CD-432A-85BD-1B2E729B4E99} = {1B5980E6-EF5C-6277-9477-31F21C2DD2D5}
 		{F4CEA5E6-5E22-4B15-B468-E9E55E02C5D0} = {74553503-8F02-3961-70FA-B3C80C1C4ED6}
+		{A52B76FE-2F37-495E-BDEC-313B2DA0AE6A} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 	EndGlobalSection
 EndGlobal

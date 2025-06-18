@@ -1,4 +1,5 @@
 using System;
+using PlantWatch.Core.Factories;
 using PlantWatch.Core.Models.Definitions;
 using PlantWatch.Drivers.Siemens.Factories;
 
@@ -6,66 +7,120 @@ namespace PlantWatch.Drivers.Siemens.Tests.Factories;
 
 public class SiemensPLCServiceFactoryTests
 {
-    [Fact]
-    public void CreateFromConfig_ValidDefinition_ShouldCreateService()
+    private readonly IDriverFactory _factory;
+
+    public SiemensPLCServiceFactoryTests()
     {
-        // Arrange
+        _factory = new SiemensPLCServiceFactory();
+    }
+
+    [Fact]
+    public void CreateDriver_WithValidConfig_ShouldCreatePLCService()
+    {
+        var config = BuildValidConfig();
+
+        var plcService = _factory.CreateDriver(config);
+
+        Assert.NotNull(plcService);
+        Assert.Equal(config.Name, plcService.Name);
+        Assert.Equal(config.Tags.Count, plcService.Tags.Count());
+    }
+
+    [Fact]
+    public void CreateDriver_WithEmptyTags_ShouldCreatePLCServiceWithoutTags()
+    {
         var config = new PlcConnectionDefinition
         {
+            Name = "PLC_Empty",
+            DriverType = "Siemens",
+            IpAddress = "192.168.0.10",
+            Rack = 0,
+            Slot = 1,
+            Tags = new List<PlcTagDefinition>() // empty list
+        };
+
+        var plcService = _factory.CreateDriver(config);
+
+        Assert.NotNull(plcService);
+        Assert.Empty(plcService.Tags);
+    }
+
+    [Fact]
+    public void CreateDriver_WithInvalidDatatype_ShouldThrow()
+    {
+        var config = BuildValidConfig();
+        config.Tags[0].Datatype = "INVALID_TYPE";
+
+        Assert.Throws<ArgumentException>(() =>
+        {
+            _factory.CreateDriver(config);
+        });
+    }
+
+    [Fact]
+    public void CreateDriver_WithInvalidAddress_ShouldThrow()
+    {
+        var config = BuildValidConfig();
+        config.Tags[0].Address = "XXX999";  // invalid address format
+
+        Assert.Throws<ArgumentException>(() =>
+        {
+            _factory.CreateDriver(config);
+        });
+    }
+
+    [Fact]
+    public void CreateDriver_WithMissingAddress_ShouldThrow()
+    {
+        var config = BuildValidConfig();
+        config.Tags[0].Address = "";  // empty address
+
+        Assert.Throws<ArgumentException>(() =>
+        {
+            _factory.CreateDriver(config);
+        });
+    }
+
+    [Fact]
+    public void CreateDriver_WithNonParsableDefaultValue_ShouldThrow()
+    {
+        var config = BuildValidConfig();
+        config.Tags[1].DefaultValue = "invalid_numeric"; // can't convert to Int
+
+        Assert.Throws<FormatException>(() =>
+        {
+            _factory.CreateDriver(config);
+        });
+    }
+
+    private PlcConnectionDefinition BuildValidConfig()
+    {
+        return new PlcConnectionDefinition
+        {
             Name = "TestPLC",
+            DriverType = "Siemens",
             IpAddress = "192.168.0.1",
             Rack = 0,
             Slot = 1,
             Tags = new List<PlcTagDefinition>
-            {
-                new PlcTagDefinition
                 {
-                    Name = "Tag1",
-                    Datatype = "Bool",
-                    Address = "DB1.DBX0.0",
-                    DefaultValue = true
-                },
-                new PlcTagDefinition
-                {
-                    Name = "Tag2",
-                    Datatype = "Int",
-                    Address = "DB1.DBW2",
-                    DefaultValue = 42
+                    new PlcTagDefinition
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "BoolTag",
+                        Datatype = "Bool",
+                        Address = "DB1.DBX0.0",
+                        DefaultValue = true
+                    },
+                    new PlcTagDefinition
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "IntTag",
+                        Datatype = "Int",
+                        Address = "DB1.DBW2",
+                        DefaultValue = 42
+                    }
                 }
-            }
         };
-
-        // Act
-        var service = SiemensPLCServiceFactory.CreateFromConfig(config);
-
-        // Assert
-        Assert.NotNull(service);
-        Assert.Equal("TestPLC", service.Name);
-        Assert.Equal(2, service.Tags.Count());
-    }
-
-    [Fact]
-    public void CreateFromConfig_InvalidTag_ThrowsException()
-    {
-        var config = new PlcConnectionDefinition
-        {
-            Name = "FaultyPLC",
-            IpAddress = "192.168.0.2",
-            Rack = 0,
-            Slot = 1,
-            Tags = new List<PlcTagDefinition>
-            {
-                new PlcTagDefinition
-                {
-                    Name = "InvalidTag",
-                    Datatype = "FloatyFloat",
-                    Address = "DB1.DBD4",
-                    DefaultValue = 3.14f
-                }
-            }
-        };
-
-        Assert.Throws<ArgumentException>(() =>
-            SiemensPLCServiceFactory.CreateFromConfig(config));
     }
 }

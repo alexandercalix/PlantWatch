@@ -5,7 +5,7 @@ namespace PlantWatch.Core.Models.Definitions;
 public class PlcTagDefinition
 {
 
-    public Guid Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid(); // Unique identifier for the tag
     public string Name { get; set; }          // Ej: "Tanque 1"
     public string Datatype { get; set; }      // Ej: "Real"
     public string Address { get; set; }       // Ej: "DB1.DBD2"
