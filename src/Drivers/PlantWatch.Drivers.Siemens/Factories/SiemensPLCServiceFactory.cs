@@ -12,7 +12,7 @@ public static class SiemensPLCServiceFactory
         Console.WriteLine($"[Factory] Creating SiemensPLCService for {config.Name} at {config.IpAddress}");
 
         var tags = config.Tags
-            .Select(t => SiemensTagFactory.Create(t.Name, t.Datatype, t.Address, ConvertToPlcType(t.Datatype, t.DefaultValue)))
+            .Select(t => SiemensTagFactory.Create(t.Id, t.Name, t.Datatype, t.Address, ConvertToPlcType(t.Datatype, t.DefaultValue)))
             .ToList();
 
         return new SiemensPLCService(

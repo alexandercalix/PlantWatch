@@ -5,42 +5,18 @@ namespace PlantWatch.Drivers.Siemens.Models
 {
 
 
-    public class SiemensTag : ITag
+    public class SiemensTag : TagBase
     {
-        public string Name { get; set; }
-        public string Datatype { get; init; }
-        public string Address { get; init; }
-        public bool Quality { get; internal set; }
-        public bool Disabled { get; set; } = false;
-
-
-        private object _value;
-
-        public object Value
-        {
-            get => Item?.Value ?? _value;
-            set
-            {
-                if (!IsCompatibleType(value))
-                    throw new InvalidCastException($"Value type '{value?.GetType().Name}' is not compatible with PLC type '{Datatype}'.");
-
-                _value = value;
-                if (Item != null)
-                    Item.Value = value;
-            }
-        }
-
         public DataItem Item { get; internal set; }
 
-        internal SiemensTag(string name, string datatype, string address, object value)
+        public SiemensTag(Guid id, string name, string datatype, string address, object defaultValue)
+            : base(id, name, datatype, address)
         {
-            Name = name;
-            Datatype = datatype;
-            Address = address;
-            _value = value;
+            Value = defaultValue;
         }
 
-        private bool IsCompatibleType(object value)
+
+        protected override bool IsCompatibleType(object value)
         {
             if (value == null) return false;
 

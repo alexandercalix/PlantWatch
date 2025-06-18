@@ -162,9 +162,9 @@ public class SiemensPLCService : IPLCService
                         try
                         {
                             var items = _tags
-                                .Where(t => !t.Disabled)
-                                .Select(t => t.Item)
-                                .ToList();
+                            .Where(t => !t.Disabled)
+                            .Select(t => t.Item)
+                            .ToList();
 
                             for (int i = 0; i < items.Count; i += 19)
                             {
@@ -172,8 +172,12 @@ public class SiemensPLCService : IPLCService
                                 await _client.ReadMultipleVarsAsync(batch);
                             }
 
+                            // SINCRONIZAR los valores físicos al runtime:
                             foreach (var tag in _tags.Where(t => !t.Disabled))
+                            {
                                 tag.Quality = tag.Item?.Value != null;
+                                tag.Value = tag.Item?.Value;  // 🔑 Aquí es la nueva parte crucial
+                            }
 
                             _consecutiveFailures = 0;
                         }

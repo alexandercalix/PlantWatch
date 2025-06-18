@@ -9,11 +9,11 @@ namespace PlantWatch.Drivers.Siemens.Factories;
 
 public static class SiemensTagFactory
 {
-    public static SiemensTag Create(string name, string datatype, string address, object value)
+    public static SiemensTag Create(Guid id, string name, string datatype, string address, object value)
     {
         var validatedType = ValidateDatatype(datatype);
 
-        var tag = new SiemensTag(name, validatedType, address, value)
+        var tag = new SiemensTag(id, name, validatedType, address, value)
         {
             Item = new DataItem
             {

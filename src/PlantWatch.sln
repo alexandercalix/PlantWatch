@@ -19,6 +19,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Live", "Live", "{1B5980E6-E
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlantWatch.LiveTestApp", "Tests\Live\PlantWatch.LiveTestApp\PlantWatch.LiveTestApp.csproj", "{26B782BD-F2CD-432A-85BD-1B2E729B4E99}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlantWatch.DriverRuntime", "Drivers\PlantWatch.DriverRuntime\PlantWatch.DriverRuntime.csproj", "{F4CEA5E6-5E22-4B15-B468-E9E55E02C5D0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -77,6 +79,18 @@ Global
 		{26B782BD-F2CD-432A-85BD-1B2E729B4E99}.Release|x64.Build.0 = Release|Any CPU
 		{26B782BD-F2CD-432A-85BD-1B2E729B4E99}.Release|x86.ActiveCfg = Release|Any CPU
 		{26B782BD-F2CD-432A-85BD-1B2E729B4E99}.Release|x86.Build.0 = Release|Any CPU
+		{F4CEA5E6-5E22-4B15-B468-E9E55E02C5D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F4CEA5E6-5E22-4B15-B468-E9E55E02C5D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F4CEA5E6-5E22-4B15-B468-E9E55E02C5D0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F4CEA5E6-5E22-4B15-B468-E9E55E02C5D0}.Debug|x64.Build.0 = Debug|Any CPU
+		{F4CEA5E6-5E22-4B15-B468-E9E55E02C5D0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F4CEA5E6-5E22-4B15-B468-E9E55E02C5D0}.Debug|x86.Build.0 = Debug|Any CPU
+		{F4CEA5E6-5E22-4B15-B468-E9E55E02C5D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F4CEA5E6-5E22-4B15-B468-E9E55E02C5D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F4CEA5E6-5E22-4B15-B468-E9E55E02C5D0}.Release|x64.ActiveCfg = Release|Any CPU
+		{F4CEA5E6-5E22-4B15-B468-E9E55E02C5D0}.Release|x64.Build.0 = Release|Any CPU
+		{F4CEA5E6-5E22-4B15-B468-E9E55E02C5D0}.Release|x86.ActiveCfg = Release|Any CPU
+		{F4CEA5E6-5E22-4B15-B468-E9E55E02C5D0}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -87,5 +101,6 @@ Global
 		{60891156-6CC2-45AE-ADDE-010A2BD25BA6} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{1B5980E6-EF5C-6277-9477-31F21C2DD2D5} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{26B782BD-F2CD-432A-85BD-1B2E729B4E99} = {1B5980E6-EF5C-6277-9477-31F21C2DD2D5}
+		{F4CEA5E6-5E22-4B15-B468-E9E55E02C5D0} = {74553503-8F02-3961-70FA-B3C80C1C4ED6}
 	EndGlobalSection
 EndGlobal
