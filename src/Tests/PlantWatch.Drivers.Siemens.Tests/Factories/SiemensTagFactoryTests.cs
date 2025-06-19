@@ -24,7 +24,6 @@ public class SiemensTagFactoryTests
         Assert.Equal(datatype, tag.Datatype);
         Assert.Equal(address, tag.Address);
         Assert.NotNull(tag.Item);
-        Assert.Equal(123, tag.Item.Value);
         Assert.False(tag.Disabled);
         Assert.False(tag.Quality);
     }

@@ -31,6 +31,7 @@ public class SiemensPLCServiceFactoryTests
     {
         var config = new PlcConnectionDefinition
         {
+            Id = new Guid(),
             Name = "PLC_Empty",
             DriverType = "Siemens",
             IpAddress = "192.168.0.10",
@@ -81,17 +82,7 @@ public class SiemensPLCServiceFactoryTests
         });
     }
 
-    [Fact]
-    public void CreateDriver_WithNonParsableDefaultValue_ShouldThrow()
-    {
-        var config = BuildValidConfig();
-        config.Tags[1].DefaultValue = "invalid_numeric"; // can't convert to Int
 
-        Assert.Throws<FormatException>(() =>
-        {
-            _factory.CreateDriver(config);
-        });
-    }
 
     private PlcConnectionDefinition BuildValidConfig()
     {

@@ -1,11 +1,15 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Moq;
-using PlantWatch.Core.Factories;
 using PlantWatch.Core.Interfaces;
 using PlantWatch.Core.Models.Definitions;
-using PlantWatch.Core.Services.Drivers;
+using PlantWatch.DriverRuntime;
 using PlantWatch.DriverRuntime.Interfaces;
-using IDriverFactory = PlantWatch.DriverRuntime.Interfaces.IDriverFactory;
+using PlantWatch.Core.Services.Drivers;
+using Xunit;
+using PlantWatch.Core.Validators;
 
 namespace PlantWatch.DriverRuntime.Tests;
 
@@ -17,10 +21,11 @@ public class DriverManagerTests
         // Arrange
         var mockRepo = new Mock<IConfigurationRepository>();
 
-
-        // Create a valid config (Siemens)
+        // Create valid PLC config
+        var validPlcId = Guid.NewGuid();
         var validConfig = new PlcConnectionDefinition
         {
+            Id = validPlcId,
             Name = "PLC_Siemens_1",
             DriverType = "Siemens",
             IpAddress = "192.168.0.10",
@@ -29,20 +34,23 @@ public class DriverManagerTests
             Tags = new List<PlcTagDefinition>()
         };
 
-        // Create invalid config (Validator will fail)
+        // Create invalid PLC config (validation will fail)
+        var invalidPlcId = Guid.NewGuid();
         var invalidConfig = new PlcConnectionDefinition
         {
+            Id = invalidPlcId,
             Name = "PLC_Invalid",
             DriverType = "Siemens",
-            IpAddress = "192.168.0.99",
+            IpAddress = "",
             Rack = 0,
             Slot = 1,
             Tags = new List<PlcTagDefinition>()
         };
 
-        // Create unknown config (No factory registered)
+        // Create unknown driver type
         var unknownConfig = new PlcConnectionDefinition
         {
+            Id = Guid.NewGuid(),
             Name = "PLC_Unknown",
             DriverType = "Modbus",
             IpAddress = "192.168.0.50",
@@ -51,15 +59,16 @@ public class DriverManagerTests
             Tags = new List<PlcTagDefinition>()
         };
 
-        // Return all configs from repository
+        // Mock DB repository returning all configs
         mockRepo.Setup(r => r.LoadAllPlcConfigurationsAsync())
             .ReturnsAsync(new List<PlcConnectionDefinition> { validConfig, invalidConfig, unknownConfig });
 
-        // Create mocks for Siemens Factory and Validator
+        // Mock Siemens Factory & Validator
         var mockFactory = new Mock<IDriverFactory>();
         mockFactory.Setup(f => f.DriverType).Returns("Siemens");
 
         var mockDriver = new Mock<IPLCService>();
+        mockDriver.Setup(d => d.Id).Returns(validPlcId);
         mockDriver.Setup(d => d.Name).Returns(validConfig.Name);
         mockDriver.Setup(d => d.StartAsync()).Returns(Task.CompletedTask);
         mockDriver.Setup(d => d.StopAsync()).Returns(Task.CompletedTask);
@@ -68,7 +77,8 @@ public class DriverManagerTests
 
         var mockValidator = new Mock<IConfigurationValidator>();
         mockValidator.Setup(v => v.ValidatePlcDefinitionAsync(validConfig)).Returns(Task.CompletedTask);
-        mockValidator.Setup(v => v.ValidatePlcDefinitionAsync(invalidConfig)).ThrowsAsync(new Exception("Invalid config"));
+        mockValidator.Setup(v => v.ValidatePlcDefinitionAsync(invalidConfig))
+            .ThrowsAsync(new Exception("Invalid config"));
 
         // Create DriverManager
         var manager = new DriverManager(mockRepo.Object);
@@ -79,18 +89,17 @@ public class DriverManagerTests
 
         // Assert
         var loadedDrivers = manager.GetAllDrivers().ToList();
+        Assert.Single(loadedDrivers);
+        Assert.Equal(validPlcId, loadedDrivers[0].Id);
 
-        Assert.Single(loadedDrivers); // Only validConfig should succeed
-        Assert.Equal("PLC_Siemens_1", loadedDrivers[0].Name);
+        var driverById = manager.GetDriver(validPlcId);
+        Assert.NotNull(driverById);
+        Assert.Equal(validPlcId, driverById.Id);
 
-        var driverByName = manager.GetDriver("PLC_Siemens_1");
-        Assert.NotNull(driverByName);
-        Assert.Equal("PLC_Siemens_1", driverByName.Name);
-
-        var nonExistingDriver = manager.GetDriver("NonExistingPLC");
+        var nonExistingDriver = manager.GetDriver(Guid.NewGuid());
         Assert.Null(nonExistingDriver);
 
-        // Verify mocks behavior
+        // Verify mocks
         mockValidator.Verify(v => v.ValidatePlcDefinitionAsync(validConfig), Times.Once);
         mockValidator.Verify(v => v.ValidatePlcDefinitionAsync(invalidConfig), Times.Once);
         mockFactory.Verify(f => f.CreateDriver(validConfig), Times.Once);

@@ -1,12 +1,25 @@
 using System;
 using PlantWatch.Core.Interfaces;
 using PlantWatch.Core.Services.Drivers;
+using PlantWatch.Core.Validators;
 using PlantWatch.DriverRuntime.Interfaces;
 using PlantWatch.DriverRuntime.Models;
 
 namespace PlantWatch.DriverRuntime;
 
-public class DriverManager
+public interface IDriverManager
+{
+    Task ReloadDriversAsync();
+
+    IEnumerable<IPLCService> GetAllDrivers();
+
+    IPLCService GetDriver(Guid plcId);  // 🔥 Ya usando el ID único
+
+    IEnumerable<IDriverDiagnostics> GetAllDiagnostics();
+
+    IDriverDiagnostics GetDiagnostics(Guid plcId);
+}
+public class DriverManager : IDriverManager
 {
     private readonly IConfigurationRepository _configRepository;
     private readonly Dictionary<string, (IDriverFactory Factory, IConfigurationValidator Validator)> _driverHandlers;
@@ -26,14 +39,11 @@ public class DriverManager
 
     public async Task ReloadDriversAsync()
     {
-        // Stop current drivers
         foreach (var driver in _plcDrivers)
-        {
             await driver.StopAsync();
-        }
+
         _plcDrivers.Clear();
 
-        // Load config from repository
         var configs = await _configRepository.LoadAllPlcConfigurationsAsync();
 
         foreach (var config in configs)
@@ -61,6 +71,15 @@ public class DriverManager
 
     public IEnumerable<IPLCService> GetAllDrivers() => _plcDrivers;
 
-    public IPLCService GetDriver(string plcName)
-        => _plcDrivers.FirstOrDefault(d => d.Name.Equals(plcName, StringComparison.OrdinalIgnoreCase));
+    public IPLCService GetDriver(Guid plcId)
+        => _plcDrivers.FirstOrDefault(d => d.Id == plcId);
+
+    public IEnumerable<IDriverDiagnostics> GetAllDiagnostics()
+        => _plcDrivers.OfType<IDriverDiagnostics>().ToList();
+
+    public IDriverDiagnostics GetDiagnostics(Guid plcId)
+    {
+        var driver = _plcDrivers.FirstOrDefault(d => d.Id == plcId);
+        return driver as IDriverDiagnostics;
+    }
 }

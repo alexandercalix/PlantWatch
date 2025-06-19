@@ -15,6 +15,7 @@ public class PlcTagDocument
 public class PlcConnectionDocument
 {
     [BsonId]
+    public Guid Id { get; set; }
     public string Name { get; set; }
     public string DriverType { get; set; }
     public string IpAddress { get; set; }

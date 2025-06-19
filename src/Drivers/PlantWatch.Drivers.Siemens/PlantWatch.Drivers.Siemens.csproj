@@ -8,6 +8,10 @@
     <PackageReference Include="S7netplus" Version="0.20.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Validators/" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>

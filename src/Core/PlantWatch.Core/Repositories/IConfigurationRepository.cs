@@ -6,25 +6,21 @@ using PlantWatch.Core.Models.Definitions;
 
 namespace PlantWatch.Core.Interfaces
 {
+
+
     public interface IConfigurationRepository
     {
         // PLC Level
         Task<IEnumerable<PlcConnectionDefinition>> LoadAllPlcConfigurationsAsync();
-        Task<PlcConnectionDefinition> GetPlcConfigurationAsync(string plcName);
+        Task<PlcConnectionDefinition> GetPlcConfigurationAsync(Guid plcId);
         Task SavePlcConfigurationAsync(PlcConnectionDefinition config);
-        Task DeletePlcConfigurationAsync(string plcName);
+        Task DeletePlcConfigurationAsync(Guid plcId);
 
         // Tag Level (por PLC)
-        Task<IEnumerable<PlcTagDefinition>> LoadTagsAsync(string plcName);
-        Task<PlcTagDefinition> GetTagAsync(string plcName, Guid tagId);
-        Task AddOrUpdateTagAsync(string plcName, PlcTagDefinition tag);
-        Task DeleteTagAsync(string plcName, Guid tagId);
-    }
-
-    public interface IConfigurationValidator
-    {
-        Task ValidatePlcDefinitionAsync(PlcConnectionDefinition plcDefinition);
-        Task ValidateTagAsync(PlcTagDefinition tag);
+        Task<IEnumerable<PlcTagDefinition>> LoadTagsAsync(Guid plcId);
+        Task<PlcTagDefinition> GetTagAsync(Guid plcId, Guid tagId);
+        Task AddOrUpdateTagAsync(Guid plcId, PlcTagDefinition tag);
+        Task DeleteTagAsync(Guid plcId, Guid tagId);
     }
 
 

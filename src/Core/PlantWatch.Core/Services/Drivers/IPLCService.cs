@@ -8,6 +8,7 @@ namespace PlantWatch.Core.Services.Drivers
 
     public interface IPLCService
     {
+        Guid Id { get; }          // 🔥 Nuevo: ID único
         string Name { get; }
         bool IsConnected { get; }
         bool IsRunning { get; }

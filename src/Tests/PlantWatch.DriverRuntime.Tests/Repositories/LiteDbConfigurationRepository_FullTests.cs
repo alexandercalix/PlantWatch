@@ -13,28 +13,29 @@ public class LiteDbConfigurationRepository_FullTests
     {
         return new PlcConnectionDefinition
         {
+            Id = Guid.NewGuid(),  // Nuevo campo ID
             Name = plcName,
             DriverType = "Siemens",
             IpAddress = "192.168.0.100",
             Rack = 0,
             Slot = 1,
             Tags = new List<PlcTagDefinition>
+            {
+                new PlcTagDefinition
                 {
-                    new PlcTagDefinition
-                    {
-                        Id = Guid.NewGuid(),
-                        Name = "Tag1",
-                        Datatype = "Bool",
-                        Address = "DB1.DBX0.0"
-                    },
-                    new PlcTagDefinition
-                    {
-                        Id = Guid.NewGuid(),
-                        Name = "Tag2",
-                        Datatype = "Int",
-                        Address = "DB1.DBW2"
-                    }
+                    Id = Guid.NewGuid(),
+                    Name = "Tag1",
+                    Datatype = "Bool",
+                    Address = "DB1.DBX0.0"
+                },
+                new PlcTagDefinition
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Tag2",
+                    Datatype = "Int",
+                    Address = "DB1.DBW2"
                 }
+            }
         };
     }
 
@@ -42,39 +43,39 @@ public class LiteDbConfigurationRepository_FullTests
     public async Task FullRepository_CRUD_Test()
     {
         var dbPath = GenerateTempDbPath();
+        var password = "test-password";
 
         try
         {
-            var repo = new LiteDbConfigurationRepository(dbPath);
-
+            var repo = new LiteDbConfigurationRepository(dbPath, password);
             var plc = CreateSamplePlc("PLC_Main");
 
-            // Test: Initially empty
+            // Inicialmente vacía
             var allPlcs = await repo.LoadAllPlcConfigurationsAsync();
             Assert.Empty(allPlcs);
 
-            // Test: Save PLC
+            // Guardar PLC
             await repo.SavePlcConfigurationAsync(plc);
             allPlcs = await repo.LoadAllPlcConfigurationsAsync();
             Assert.Single(allPlcs);
 
-            // Test: Get PLC by name
-            var loadedPlc = await repo.GetPlcConfigurationAsync(plc.Name);
+            // Obtener por ID
+            var loadedPlc = await repo.GetPlcConfigurationAsync(plc.Id);
             Assert.NotNull(loadedPlc);
             Assert.Equal(plc.Name, loadedPlc.Name);
             Assert.Equal(2, loadedPlc.Tags.Count);
 
-            // Test: Load tags by PLC
-            var tags = await repo.LoadTagsAsync(plc.Name);
+            // Leer tags por PLC (por ID ahora)
+            var tags = await repo.LoadTagsAsync(plc.Id);
             Assert.Equal(2, tags.Count());
 
-            // Test: Get individual tag
+            // Obtener un tag específico
             var firstTag = loadedPlc.Tags.First();
-            var loadedTag = await repo.GetTagAsync(plc.Name, firstTag.Id);
+            var loadedTag = await repo.GetTagAsync(plc.Id, firstTag.Id);
             Assert.NotNull(loadedTag);
             Assert.Equal(firstTag.Id, loadedTag.Id);
 
-            // Test: Add new Tag
+            // Agregar nuevo tag
             var newTag = new PlcTagDefinition
             {
                 Id = Guid.NewGuid(),
@@ -82,18 +83,18 @@ public class LiteDbConfigurationRepository_FullTests
                 Datatype = "Real",
                 Address = "DB1.DBD10"
             };
-            await repo.AddOrUpdateTagAsync(plc.Name, newTag);
+            await repo.AddOrUpdateTagAsync(plc.Id, newTag);
 
-            var updatedTags = await repo.LoadTagsAsync(plc.Name);
+            var updatedTags = await repo.LoadTagsAsync(plc.Id);
             Assert.Equal(3, updatedTags.Count());
 
-            // Test: Delete tag
-            await repo.DeleteTagAsync(plc.Name, newTag.Id);
-            var afterDeleteTags = await repo.LoadTagsAsync(plc.Name);
+            // Eliminar tag
+            await repo.DeleteTagAsync(plc.Id, newTag.Id);
+            var afterDeleteTags = await repo.LoadTagsAsync(plc.Id);
             Assert.Equal(2, afterDeleteTags.Count());
 
-            // Test: Delete entire PLC
-            await repo.DeletePlcConfigurationAsync(plc.Name);
+            // Eliminar todo el PLC
+            await repo.DeletePlcConfigurationAsync(plc.Id);
             allPlcs = await repo.LoadAllPlcConfigurationsAsync();
             Assert.Empty(allPlcs);
         }

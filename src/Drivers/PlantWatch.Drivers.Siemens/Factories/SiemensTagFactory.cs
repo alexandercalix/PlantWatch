@@ -1,26 +1,34 @@
 using System;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using PlantWatch.Core.Models.Definitions;
 using PlantWatch.Drivers.Siemens.Models;
+using PlantWatch.Drivers.Siemens.Validators;
 using S7.Net;
 using S7.Net.Types;
 
 namespace PlantWatch.Drivers.Siemens.Factories;
 
-
 public static class SiemensTagFactory
 {
+    private static readonly SiemensConfigurationValidator _validator = new();
+
     public static SiemensTag Create(Guid id, string name, string datatype, string address)
     {
-        var validatedType = ValidateDatatype(datatype);
-        var defaultValue = GetDefaultForDatatype(validatedType);
+        // Primero validamos la entrada
+        SiemensConfigurationValidator.ValidateTagOrThrow(id, name, datatype, address);
 
-        var tag = new SiemensTag(id, name, validatedType, address, defaultValue)
+        // Obtenemos el valor por defecto según el tipo
+        var defaultValue = GetDefaultForDatatype(datatype);
+
+        // Creamos el SiemensTag y configuramos el DataItem
+        var tag = new SiemensTag(id, name, datatype, address, defaultValue)
         {
             Item = new DataItem
             {
                 Count = 1,
                 DataType = ParseAreaType(address),
-                VarType = ParseVarType(validatedType),
+                VarType = ParseVarType(datatype),
                 DB = ParseDbNumber(address),
                 StartByteAdr = ParseByteOffset(address),
                 BitAdr = ParseBitOffset(address),
@@ -44,14 +52,6 @@ public static class SiemensTagFactory
             "Real" => 0.0f,
             _ => throw new ArgumentException($"Unsupported datatype: {datatype}")
         };
-    }
-
-    private static string ValidateDatatype(string datatype)
-    {
-        string[] allowed = { "Bool", "Byte", "Word", "DWord", "Int", "DInt", "Real" };
-        if (!Array.Exists(allowed, d => d.Equals(datatype, StringComparison.OrdinalIgnoreCase)))
-            throw new ArgumentException($"Unsupported Datatype: '{datatype}'");
-        return datatype;
     }
 
     private static DataType ParseAreaType(string address)
@@ -87,29 +87,20 @@ public static class SiemensTagFactory
 
     private static int ParseByteOffset(string address)
     {
-        // Handle DB area
+        // Para DB area
         var dbMatch = Regex.Match(address, @"^DB(\d+)\.DB(X|W|D)(\d+)", RegexOptions.IgnoreCase);
-        if (dbMatch.Success)
-        {
-            return int.Parse(dbMatch.Groups[3].Value);
-        }
+        if (dbMatch.Success) return int.Parse(dbMatch.Groups[3].Value);
 
-        // Handle Memory/Input/Output area (M, I, Q)
+        // Para M/I/Q (B/W/D)
         var mwMatch = Regex.Match(address, @"^[MIQ](B|W|D)(\d+)$", RegexOptions.IgnoreCase);
-        if (mwMatch.Success)
-        {
-            return int.Parse(mwMatch.Groups[2].Value);
-        }
+        if (mwMatch.Success) return int.Parse(mwMatch.Groups[2].Value);
 
+        // Para bits simples tipo M100.0, I0.0, Q2.3
         var mbBitMatch = Regex.Match(address, @"^[MIQ](\d+)\.(\d+)$");
-        if (mbBitMatch.Success)
-        {
-            return int.Parse(mbBitMatch.Groups[1].Value);
-        }
+        if (mbBitMatch.Success) return int.Parse(mbBitMatch.Groups[1].Value);
 
         throw new ArgumentException($"Invalid address format for byte offset: {address}");
     }
-
 
     private static byte ParseBitOffset(string address)
     {

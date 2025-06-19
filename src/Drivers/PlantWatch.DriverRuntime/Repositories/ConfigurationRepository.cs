@@ -27,13 +27,14 @@ public class LiteDbConfigurationRepository : IConfigurationRepository
             Console.WriteLine($"[LiteDB] Creating new database at {_dbPath}");
             using var db = new LiteDatabase(BuildConnectionString());
             var collection = db.GetCollection<PlcConnectionDocument>(_collectionName);
+            collection.EnsureIndex(x => x.Id, true);
             collection.EnsureIndex(x => x.Name, true);
         }
     }
 
-    private string BuildConnectionString() => $"Filename={_dbPath};Password=your-strong-password;";
+    private string BuildConnectionString() => $"Filename={_dbPath};Password={_password};";
 
-    // ----------- PLC Level --------------
+    // -------------- PLC LEVEL --------------
 
     public async Task<IEnumerable<PlcConnectionDefinition>> LoadAllPlcConfigurationsAsync()
     {
@@ -45,13 +46,13 @@ public class LiteDbConfigurationRepository : IConfigurationRepository
         });
     }
 
-    public async Task<PlcConnectionDefinition> GetPlcConfigurationAsync(string plcName)
+    public async Task<PlcConnectionDefinition> GetPlcConfigurationAsync(Guid plcId)
     {
         return await Task.Run(() =>
         {
             using var db = new LiteDatabase(BuildConnectionString());
             var col = db.GetCollection<PlcConnectionDocument>(_collectionName);
-            var doc = col.FindOne(x => x.Name.Equals(plcName, StringComparison.OrdinalIgnoreCase));
+            var doc = col.FindOne(x => x.Id == plcId);
             return doc == null ? null : ToModel(doc);
         });
     }
@@ -67,39 +68,39 @@ public class LiteDbConfigurationRepository : IConfigurationRepository
         });
     }
 
-    public async Task DeletePlcConfigurationAsync(string plcName)
+    public async Task DeletePlcConfigurationAsync(Guid plcId)
     {
         await Task.Run(() =>
         {
             using var db = new LiteDatabase(BuildConnectionString());
             var col = db.GetCollection<PlcConnectionDocument>(_collectionName);
-            col.DeleteMany(x => x.Name.Equals(plcName, StringComparison.OrdinalIgnoreCase));
+            col.DeleteMany(x => x.Id == plcId);
         });
     }
 
-    // ----------- TAG Level --------------
+    // -------------- TAG LEVEL --------------
 
-    public async Task<IEnumerable<PlcTagDefinition>> LoadTagsAsync(string plcName)
+    public async Task<IEnumerable<PlcTagDefinition>> LoadTagsAsync(Guid plcId)
     {
-        var plc = await GetPlcConfigurationAsync(plcName);
+        var plc = await GetPlcConfigurationAsync(plcId);
         return plc?.Tags ?? Enumerable.Empty<PlcTagDefinition>();
     }
 
-    public async Task<PlcTagDefinition> GetTagAsync(string plcName, Guid tagId)
+    public async Task<PlcTagDefinition> GetTagAsync(Guid plcId, Guid tagId)
     {
-        var tags = await LoadTagsAsync(plcName);
+        var tags = await LoadTagsAsync(plcId);
         return tags.FirstOrDefault(t => t.Id == tagId);
     }
 
-    public async Task AddOrUpdateTagAsync(string plcName, PlcTagDefinition tag)
+    public async Task AddOrUpdateTagAsync(Guid plcId, PlcTagDefinition tag)
     {
         await Task.Run(() =>
         {
             using var db = new LiteDatabase(BuildConnectionString());
             var col = db.GetCollection<PlcConnectionDocument>(_collectionName);
-            var doc = col.FindOne(x => x.Name.Equals(plcName, StringComparison.OrdinalIgnoreCase));
+            var doc = col.FindOne(x => x.Id == plcId);
             if (doc == null)
-                throw new InvalidOperationException($"PLC '{plcName}' not found.");
+                throw new InvalidOperationException($"PLC ID '{plcId}' not found.");
 
             doc.Tags.RemoveAll(t => t.Id == tag.Id);
             doc.Tags.Add(new PlcTagDocument
@@ -114,13 +115,13 @@ public class LiteDbConfigurationRepository : IConfigurationRepository
         });
     }
 
-    public async Task DeleteTagAsync(string plcName, Guid tagId)
+    public async Task DeleteTagAsync(Guid plcId, Guid tagId)
     {
         await Task.Run(() =>
         {
             using var db = new LiteDatabase(BuildConnectionString());
             var col = db.GetCollection<PlcConnectionDocument>(_collectionName);
-            var doc = col.FindOne(x => x.Name.Equals(plcName, StringComparison.OrdinalIgnoreCase));
+            var doc = col.FindOne(x => x.Id == plcId);
             if (doc == null)
                 return;
 
@@ -129,12 +130,13 @@ public class LiteDbConfigurationRepository : IConfigurationRepository
         });
     }
 
-    // ----------- Mapping -----------
+    // -------------- MAPPING --------------
 
     private PlcConnectionDocument ToDocument(PlcConnectionDefinition model)
     {
         return new PlcConnectionDocument
         {
+            Id = model.Id,  // <-- AQUI AHORA GUARDAMOS EL ID
             Name = model.Name,
             DriverType = model.DriverType,
             IpAddress = model.IpAddress,
@@ -154,6 +156,7 @@ public class LiteDbConfigurationRepository : IConfigurationRepository
     {
         return new PlcConnectionDefinition
         {
+            Id = doc.Id,
             Name = doc.Name,
             DriverType = doc.DriverType,
             IpAddress = doc.IpAddress,
