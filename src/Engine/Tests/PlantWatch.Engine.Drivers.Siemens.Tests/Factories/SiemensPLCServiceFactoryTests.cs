@@ -1,9 +1,9 @@
 using System;
 using PlantWatch.Engine.Core.Factories;
 using PlantWatch.Engine.Core.Models.Definitions;
-using PlantWatch.Engine.Drivers.Siemens.Factories;
+using PlantWatch.Engine.Drivers.Protocols.Siemens.Factories;
 
-namespace PlantWatch.Engine.Drivers.Siemens.Tests.Factories;
+namespace PlantWatch.Engine.Drivers.Protocols.Siemens.Tests.Factories;
 
 public class SiemensPLCServiceFactoryTests
 {

@@ -6,15 +6,15 @@ using System.Threading.Tasks;
 using PlantWatch.Engine.Core.Interfaces;
 using PlantWatch.Engine.Core.Models.Drivers;
 using PlantWatch.Engine.Core.Services.Drivers;
-using PlantWatch.Engine.Drivers.Siemens.Models;
+using PlantWatch.Engine.Drivers.Protocols.Siemens.Models;
 using S7.Net;
 using S7.Net.Types;
 
-namespace PlantWatch.Engine.Drivers.Siemens.Services;
+namespace PlantWatch.Engine.Drivers.Protocols.Siemens.Services;
 
 public class SiemensPLCService : IPLCService, IDriverDiagnostics
 {
-    public Guid Id { get; internal set; }
+    public Guid Id { get; }
     public string Name { get; private set; }
     private readonly string _plcIp;
     private readonly Plc _client;
@@ -106,22 +106,32 @@ public class SiemensPLCService : IPLCService, IDriverDiagnostics
         Console.WriteLine("[PLC] Running initial diagnostic pass...");
 
         var tagsToCheck = _tags.Where(t => !t.Disabled).ToList();
-        bool allValid = true;
+        int validTags = 0;
 
         foreach (var tag in tagsToCheck)
         {
-            Console.WriteLine($"[PLC] Validating tag: {tag.Name}");
+
 
             try
             {
-                await _client.ReadMultipleVarsAsync(new List<DataItem> { tag.Item });
-                tag.Quality = tag.Item?.Value != null;
+                if (tag != null && tag.Item != null)
+                {
+                    await _client.ReadMultipleVarsAsync(new List<DataItem> { tag.Item });
+                    tag.Quality = tag.Item?.Value != null;
+
+                    if (tag.Quality)
+                        validTags++;
+                }
+                else
+                {
+                    Console.WriteLine($"[Tag Error] {tag.Name}: Item is null or not properly configured.");
+                }
             }
             catch (Exception ex)
             {
                 tag.Quality = false;
 
-                if (ex.Message.Contains("Address out of range"))
+                if (ex.Message.Contains("Address out of range") || ex.Message.Contains("Object does not exist"))
                 {
                     tag.Disabled = true;
                     Console.WriteLine($"[Tag Disabled] {tag.Name}: permanently excluded due to invalid address.");
@@ -130,13 +140,21 @@ public class SiemensPLCService : IPLCService, IDriverDiagnostics
                 {
                     Console.WriteLine($"[Tag Error] {tag.Name}: {ex.Message}");
                 }
-
-                allValid = false;
             }
         }
 
-        return allValid;
+        if (validTags > 0)
+        {
+            Console.WriteLine($"[PLC] Diagnostic completed. Valid tags: {validTags}");
+            return true;  // diagnostic successful
+        }
+        else
+        {
+            Console.WriteLine($"[PLC] No valid tags found. Remaining in diagnostic mode.");
+            return false;  // remain in diagnostic mode
+        }
     }
+
 
 
     private async Task Cycle(CancellationToken token)
@@ -154,7 +172,7 @@ public class SiemensPLCService : IPLCService, IDriverDiagnostics
 
                 if (!_client.IsConnected)
                 {
-                    Console.WriteLine("[PLC] Attempting to connect...");
+                    Console.WriteLine($"[PLC] Attempting to connect... {System.DateTime.Now}");
                     await ConnectAsync();
                     _totalConnectionRetries++;  // << Aquí contamos los intentos
                     wasConnected = false;
@@ -165,15 +183,16 @@ public class SiemensPLCService : IPLCService, IDriverDiagnostics
 
                 if (!wasConnected)
                 {
-                    Console.WriteLine("[PLC] Connected. Running diagnostics...");
-                    _diagnosticMode = await RunInitialDiagnostics();
+                    Console.WriteLine($"[PLC] Connected. Running diagnostics... {System.DateTime.Now}");
+                    await RunInitialDiagnostics();
                     hasDiagnosed = true;
                     wasConnected = true;
+                    _diagnosticMode = false; // Entramos ya directamente al ciclo normal después del primer diagnóstico
                 }
 
                 if (_diagnosticMode)
                 {
-                    Console.WriteLine("[PLC] Re-validating tags...");
+                    Console.WriteLine($"[PLC] Re-validating tags... {System.DateTime.Now}");
                     _diagnosticMode = !await RunInitialDiagnostics();
                 }
                 else
@@ -242,28 +261,52 @@ public class SiemensPLCService : IPLCService, IDriverDiagnostics
     }
 
 
-    public async Task<bool> WriteTagAsync(string tagName, object value)
+    public async Task<bool> WriteTagAsync(Guid Id, object value)
     {
-        var tag = _tags.FirstOrDefault(t => t.Name.Equals(tagName, StringComparison.OrdinalIgnoreCase));
+        bool semaphoreAcquired = false;
+
+        foreach (var i in Tags)
+        {
+            Console.WriteLine($"[PLC] Checking tag {i.Name} with Id: {i.Id}");
+        }
+
+        var tag = _tags.FirstOrDefault(t => t.Id == Id);
         if (tag == null)
-            throw new ArgumentException($"Tag not found: {tagName}");
+            throw new ArgumentException($"Tag not found: {Id}");
 
         try
         {
-            await _semaphore.WaitAsync();
+            if (tag.Quality && !tag.Disabled)
+            {
 
-            tag.Value = value;
-            await _client.WriteAsync(tag.Item);
-            return true;
+                await _semaphore.WaitAsync();
+                semaphoreAcquired = true;
+
+                tag.Value = value;
+
+                Console.WriteLine($"====== Before Write To PLC");
+                Console.WriteLine($"[PLC] Writing to tag '{tag.Item.DB}', '{tag.Item.StartByteAdr}' , '{tag.Item.BitAdr}' with value: {value}");
+                await _client.WriteAsync(tag.Item);
+                Console.WriteLine($"====== After Write To PLC");
+
+                return true;
+            }
+            else
+            {
+
+                Console.WriteLine($"[PLC] Cannot write to tag '{tag.Name}': Tag is disabled or not valid.");
+                return false;
+            }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Write error on tag '{tagName}': {ex.Message}");
+            Console.WriteLine($"Write error on tag '{tag.Name}': {ex.Message}");
             return false;
         }
         finally
         {
-            _semaphore.Release();
+            if (semaphoreAcquired)
+                _semaphore.Release();
         }
     }
 

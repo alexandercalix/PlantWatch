@@ -4,6 +4,7 @@ namespace PlantWatch.Engine.Core.Interfaces;
 
 public interface IDriverDiagnostics
 {
+    Guid Id { get; }
     bool IsConnected { get; }
     bool IsRunning { get; }
     DateTime? LastCycleTimestamp { get; }

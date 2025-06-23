@@ -1,5 +1,6 @@
 
 using System;
+using System.Text.Json;
 
 namespace PlantWatch.Engine.Core.Models.Drivers
 {
@@ -18,15 +19,18 @@ namespace PlantWatch.Engine.Core.Models.Drivers
             get => _value;
             set
             {
-                if (IsSignificantChange(_value, value))
+                object convertedValue = ConvertToInternalType(value);
+
+                if (IsSignificantChange(_value, convertedValue))
                 {
-                    _value = value;
+                    _value = convertedValue;
+                    OnValueAssigned(convertedValue);
                     LastChangeTimestamp = DateTime.UtcNow;
-                    OnValueChanged?.Invoke(this, new TagChangeEventArgs(this, value));
+                    OnValueChanged?.Invoke(this, new TagChangeEventArgs(this, convertedValue));
                 }
                 else
                 {
-                    _value = value; // silent update sin evento
+                    _value = convertedValue;
                 }
             }
         }
@@ -40,6 +44,7 @@ namespace PlantWatch.Engine.Core.Models.Drivers
         public TimeSpan? DeadbandTime { get; set; }
 
         private DateTime _lastEventTimestamp = DateTime.UtcNow;
+        protected virtual void OnValueAssigned(object convertedValue) { }
 
         public event EventHandler<TagChangeEventArgs> OnValueChanged;
 
@@ -51,6 +56,47 @@ namespace PlantWatch.Engine.Core.Models.Drivers
             Address = address;
         }
 
+        /// <summary>
+        /// Verifica si el valor es compatible con el tipo del tag
+        /// </summary>
+        private object ConvertToInternalType(object input)
+        {
+            if (input is JsonElement jsonElement)
+            {
+                switch (Datatype.ToLower())
+                {
+                    case "bool": return jsonElement.GetBoolean();
+                    case "byte":
+                    case "word":
+                    case "dword":
+                    case "int":
+                    case "dint": return jsonElement.GetInt32();
+                    case "real": return jsonElement.GetDouble();
+                    default: throw new InvalidOperationException($"Unsupported datatype: {Datatype}");
+                }
+            }
+            else
+            {
+                try
+                {
+                    switch (Datatype.ToLower())
+                    {
+                        case "bool": return Convert.ToBoolean(input);
+                        case "byte":
+                        case "word":
+                        case "dword":
+                        case "int":
+                        case "dint": return Convert.ToInt32(input);
+                        case "real": return Convert.ToDouble(input);
+                        default: throw new InvalidOperationException($"Unsupported datatype: {Datatype}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidOperationException($"Failed to convert value '{input}' to datatype '{Datatype}': {ex.Message}");
+                }
+            }
+        }
         /// <summary>
         /// Detecta si el nuevo valor es un cambio significativo
         /// </summary>

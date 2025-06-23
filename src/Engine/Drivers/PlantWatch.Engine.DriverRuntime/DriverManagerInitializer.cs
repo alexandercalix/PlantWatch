@@ -5,22 +5,18 @@ namespace PlantWatch.DriverRuntime;
 
 public class DriverManagerInitializer : IHostedService
 {
-    private readonly DriverManager _driverManager;
+    private readonly IDriverManager _manager;
 
-    public DriverManagerInitializer(DriverManager driverManager)
+    public DriverManagerInitializer(IDriverManager manager)
     {
-        _driverManager = driverManager;
+        _manager = manager;
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        Console.WriteLine("[DriverRuntime] Initializing drivers...");
-        await _driverManager.ReloadDriversAsync();
+        Console.WriteLine("👉 Starting DriverManager...");
+        await _manager.ReloadDriversAsync();
     }
 
-    public Task StopAsync(CancellationToken cancellationToken)
-    {
-        // Aquí podrías hacer un shutdown más elegante si lo deseas
-        return Task.CompletedTask;
-    }
+    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 }

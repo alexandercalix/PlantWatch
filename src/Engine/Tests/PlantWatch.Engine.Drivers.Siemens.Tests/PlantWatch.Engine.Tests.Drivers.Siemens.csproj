@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../Drivers/PlantWatch.Engine.Drivers.Siemens/PlantWatch.Engine.Drivers.Siemens.csproj" />
+    <ProjectReference Include="../../Drivers/Protocols/PlantWatch.Engine.Drivers.Protocols.Siemens/PlantWatch.Engine.Drivers.Protocols.Siemens.csproj" />
   </ItemGroup>
 
   <ItemGroup>

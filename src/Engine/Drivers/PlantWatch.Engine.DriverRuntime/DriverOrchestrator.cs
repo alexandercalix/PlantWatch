@@ -2,6 +2,7 @@ using System;
 using PlantWatch.Engine.Core.Interfaces;
 using PlantWatch.Engine.Core.Models.Definitions;
 using PlantWatch.DriverRuntime.Interfaces;
+using PlantWatch.Engine.Drivers.Protocols.Siemens.Validators;
 
 namespace PlantWatch.DriverRuntime;
 
@@ -23,6 +24,8 @@ public class DriverOrchestrator : IDriverOrchestrator
         if (plc.Id == Guid.Empty)
             plc.Id = Guid.NewGuid();
 
+        SiemensConfigurationValidator.ValidatePlcDefinition(plc);
+
         await _repository.SavePlcConfigurationAsync(plc);
         await _driverManager.ReloadDriversAsync();
     }
@@ -31,6 +34,8 @@ public class DriverOrchestrator : IDriverOrchestrator
     {
         if (plc.Id == Guid.Empty)
             throw new InvalidOperationException("PLC ID cannot be empty for update.");
+
+        SiemensConfigurationValidator.ValidatePlcDefinition(plc);
 
         await _repository.SavePlcConfigurationAsync(plc);
         await _driverManager.ReloadDriversAsync();
@@ -54,10 +59,13 @@ public class DriverOrchestrator : IDriverOrchestrator
         if (tag.Id == Guid.Empty)
             tag.Id = Guid.NewGuid();
 
+        SiemensConfigurationValidator.ValidateTag(tag);
+
         var existingPlc = await _repository.LoadAllPlcConfigurationsAsync();
         var plc = existingPlc.FirstOrDefault(p => p.Id == plcId);
         if (plc == null)
             throw new InvalidOperationException("PLC not found");
+
 
         await _repository.AddOrUpdateTagAsync(plc.Id, tag);
         await _driverManager.ReloadDriversAsync();

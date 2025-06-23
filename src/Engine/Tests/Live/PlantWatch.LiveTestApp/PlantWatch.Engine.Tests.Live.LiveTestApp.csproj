@@ -8,7 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../../Drivers/PlantWatch.Engine.Drivers.Siemens/PlantWatch.Engine.Drivers.Siemens.csproj" />
+    <ProjectReference Include="../../../Applications/PlantWatch.Engine.Applications.WebApi/PlantWatch.Engine.Applications.WebApi.csproj" />
+    <ProjectReference Include="../../../Drivers/Protocols/PlantWatch.Engine.Drivers.Protocols.Siemens/PlantWatch.Engine.Drivers.Protocols.Siemens.csproj" />
+    <ProjectReference Include="../../../Drivers/PlantWatch.Engine.DriverRuntime/PlantWatch.Engine.DriverRuntime.csproj" />
   </ItemGroup>
 
 </Project>

@@ -8,7 +8,7 @@ namespace PlantWatch.Engine.Core.Services.Drivers
 
     public interface IPLCService
     {
-        Guid Id { get; }          // 🔥 Nuevo: ID único
+        Guid Id { get; }
         string Name { get; }
         bool IsConnected { get; }
         bool IsRunning { get; }
@@ -17,7 +17,7 @@ namespace PlantWatch.Engine.Core.Services.Drivers
 
         Task StartAsync();
         Task StopAsync();
-        Task<bool> WriteTagAsync(string tagName, object value);
+        Task<bool> WriteTagAsync(Guid Id, object value);
 
         void ForceRemap();
     }

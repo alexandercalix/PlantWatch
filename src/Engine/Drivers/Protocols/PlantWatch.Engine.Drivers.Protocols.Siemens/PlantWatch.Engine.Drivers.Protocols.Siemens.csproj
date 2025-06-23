@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="../../Core/PlantWatch.Engine.Core/PlantWatch.Engine.Core.csproj" />
+    <ProjectReference Include="../../../Core/PlantWatch.Engine.Core/PlantWatch.Engine.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

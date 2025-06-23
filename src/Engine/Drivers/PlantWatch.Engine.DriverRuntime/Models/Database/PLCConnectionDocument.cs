@@ -1,7 +1,7 @@
 using System;
 using LiteDB;
 
-namespace PlantWatch.DriverRuntime.Models.Database;
+namespace PlantWatch.Engine.DriverRuntime.Models.Database;
 
 public class PlcTagDocument
 {
@@ -23,4 +23,7 @@ public class PlcConnectionDocument
     public int Slot { get; set; }
 
     public List<PlcTagDocument> Tags { get; set; } = new();
+    public List<PlcTagDocument> BrowsedTags { get; set; } = new();
+
 }
+

@@ -3,9 +3,9 @@ using System.Linq;
 using PlantWatch.Engine.Core.Factories;
 using PlantWatch.Engine.Core.Models.Definitions;
 using PlantWatch.Engine.Core.Services.Drivers;
-using PlantWatch.Engine.Drivers.Siemens.Services;
+using PlantWatch.Engine.Drivers.Protocols.Siemens.Services;
 
-namespace PlantWatch.Engine.Drivers.Siemens.Factories;
+namespace PlantWatch.Engine.Drivers.Protocols.Siemens.Factories;
 
 public class SiemensPLCServiceFactory : IDriverFactory
 {

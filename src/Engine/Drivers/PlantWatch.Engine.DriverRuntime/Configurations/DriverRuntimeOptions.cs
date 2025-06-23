@@ -1,6 +1,6 @@
 using System;
 
-namespace PlantWatch.DriverRuntime.Configurations;
+namespace PlantWatch.Engine.DriverRuntime.Configurations;
 
 public class DriverRuntimeOptions
 {

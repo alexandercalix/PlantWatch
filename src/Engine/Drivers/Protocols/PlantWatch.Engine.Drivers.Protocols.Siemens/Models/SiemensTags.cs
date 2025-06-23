@@ -1,7 +1,7 @@
 using System;
 using PlantWatch.Engine.Core.Models.Drivers;
 using S7.Net.Types;
-namespace PlantWatch.Engine.Drivers.Siemens.Models
+namespace PlantWatch.Engine.Drivers.Protocols.Siemens.Models
 {
 
 
@@ -13,6 +13,14 @@ namespace PlantWatch.Engine.Drivers.Siemens.Models
             : base(id, name, datatype, address)
         {
             Value = defaultValue;
+        }
+
+        protected override void OnValueAssigned(object convertedValue)
+        {
+            if (Item != null)
+            {
+                Item.Value = convertedValue;
+            }
         }
 
 

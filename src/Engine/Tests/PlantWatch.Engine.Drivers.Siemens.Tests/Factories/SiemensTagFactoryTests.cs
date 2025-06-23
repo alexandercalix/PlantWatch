@@ -1,7 +1,7 @@
 using System;
-using PlantWatch.Engine.Drivers.Siemens.Factories;
+using PlantWatch.Engine.Drivers.Protocols.Siemens.Factories;
 
-namespace PlantWatch.Engine.Drivers.Siemens.Tests.Factories;
+namespace PlantWatch.Engine.Drivers.Protocols.Siemens.Tests.Factories;
 
 public class SiemensTagFactoryTests
 {

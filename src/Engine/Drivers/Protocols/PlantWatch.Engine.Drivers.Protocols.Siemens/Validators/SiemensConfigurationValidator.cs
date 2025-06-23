@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using PlantWatch.Engine.Core.Models.Definitions;
 using PlantWatch.Engine.Core.Validators;
 
-namespace PlantWatch.Engine.Drivers.Siemens.Validators;
+namespace PlantWatch.Engine.Drivers.Protocols.Siemens.Validators;
 
 public class SiemensConfigurationValidator : IConfigurationValidator
 {
@@ -52,6 +52,9 @@ public class SiemensConfigurationValidator : IConfigurationValidator
 
         if (string.IsNullOrWhiteSpace(tag.Name))
             throw new ArgumentException("Tag name is required.");
+
+        if (string.IsNullOrWhiteSpace(tag.Datatype))
+            throw new ArgumentException("Tag datatype is required.");
 
         if (!AllowedDatatypes.Contains(tag.Datatype, StringComparer.OrdinalIgnoreCase))
             throw new ArgumentException($"Unsupported datatype: {tag.Datatype}");

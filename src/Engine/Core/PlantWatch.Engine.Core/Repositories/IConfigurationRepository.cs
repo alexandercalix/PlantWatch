@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using PlantWatch.Engine.Core.Models.Definitions;
-
 namespace PlantWatch.Engine.Core.Interfaces
 {
 
@@ -21,6 +20,11 @@ namespace PlantWatch.Engine.Core.Interfaces
         Task<PlcTagDefinition> GetTagAsync(Guid plcId, Guid tagId);
         Task AddOrUpdateTagAsync(Guid plcId, PlcTagDefinition tag);
         Task DeleteTagAsync(Guid plcId, Guid tagId);
+
+        Task SaveBrowsedTagsAsync(Guid plcId, IEnumerable<PlcTagDefinition> browsedTags);
+        Task<IEnumerable<PlcTagDefinition>> GetBrowsedTagsAsync(Guid plcId);
+        Task DeleteBrowsedTagsAsync(Guid plcId);
+        Task ReplaceBrowsedTagsAsync(Guid plcId, IEnumerable<PlcTagDefinition> newBrowsedTags);
     }
 
 

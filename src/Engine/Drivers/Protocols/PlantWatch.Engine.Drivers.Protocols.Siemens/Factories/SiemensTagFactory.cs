@@ -2,12 +2,12 @@ using System;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using PlantWatch.Engine.Core.Models.Definitions;
-using PlantWatch.Engine.Drivers.Siemens.Models;
-using PlantWatch.Engine.Drivers.Siemens.Validators;
+using PlantWatch.Engine.Drivers.Protocols.Siemens.Models;
+using PlantWatch.Engine.Drivers.Protocols.Siemens.Validators;
 using S7.Net;
 using S7.Net.Types;
 
-namespace PlantWatch.Engine.Drivers.Siemens.Factories;
+namespace PlantWatch.Engine.Drivers.Protocols.Siemens.Factories;
 
 public static class SiemensTagFactory
 {

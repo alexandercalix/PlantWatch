@@ -2,7 +2,7 @@ using System;
 using LiteDB;
 using PlantWatch.Engine.Core.Interfaces;
 using PlantWatch.Engine.Core.Models.Definitions;
-using PlantWatch.DriverRuntime.Models.Database;
+using PlantWatch.Engine.DriverRuntime.Models.Database;
 
 
 namespace PlantWatch.DriverRuntime.Repositories;
@@ -170,5 +170,85 @@ public class LiteDbConfigurationRepository : IConfigurationRepository
                 Address = t.Address
             }).ToList()
         };
+    }
+
+    // --- SaveBrowsedTagsAsync ---
+    public async Task SaveBrowsedTagsAsync(Guid plcId, IEnumerable<PlcTagDefinition> browsedTags)
+    {
+        await Task.Run(() =>
+        {
+            using var db = new LiteDatabase(BuildConnectionString());
+            var col = db.GetCollection<PlcConnectionDocument>(_collectionName);
+            var doc = col.FindOne(x => x.Id == plcId);
+            if (doc == null)
+                throw new InvalidOperationException($"PLC ID '{plcId}' not found.");
+
+            doc.BrowsedTags.AddRange(
+                browsedTags.Select(t => new PlcTagDocument
+                {
+                    Id = t.Id,
+                    Name = t.Name,
+                    Datatype = t.Datatype,
+                    Address = t.Address
+                }));
+
+            col.Update(doc);
+        });
+    }
+
+    // --- GetBrowsedTagsAsync ---
+    public async Task<IEnumerable<PlcTagDefinition>> GetBrowsedTagsAsync(Guid plcId)
+    {
+        return await Task.Run(() =>
+        {
+            using var db = new LiteDatabase(BuildConnectionString());
+            var col = db.GetCollection<PlcConnectionDocument>(_collectionName);
+            var doc = col.FindOne(x => x.Id == plcId);
+            return doc?.BrowsedTags.Select(t => new PlcTagDefinition
+            {
+                Id = t.Id,
+                Name = t.Name,
+                Datatype = t.Datatype,
+                Address = t.Address
+            }) ?? Enumerable.Empty<PlcTagDefinition>();
+        });
+    }
+
+    // --- DeleteBrowsedTagsAsync ---
+    public async Task DeleteBrowsedTagsAsync(Guid plcId)
+    {
+        await Task.Run(() =>
+        {
+            using var db = new LiteDatabase(BuildConnectionString());
+            var col = db.GetCollection<PlcConnectionDocument>(_collectionName);
+            var doc = col.FindOne(x => x.Id == plcId);
+            if (doc == null) return;
+
+            doc.BrowsedTags.Clear();
+            col.Update(doc);
+        });
+    }
+
+    // --- ReplaceBrowsedTagsAsync ---
+    public async Task ReplaceBrowsedTagsAsync(Guid plcId, IEnumerable<PlcTagDefinition> newBrowsedTags)
+    {
+        await Task.Run(() =>
+        {
+            using var db = new LiteDatabase(BuildConnectionString());
+            var col = db.GetCollection<PlcConnectionDocument>(_collectionName);
+            var doc = col.FindOne(x => x.Id == plcId);
+            if (doc == null)
+                throw new InvalidOperationException($"PLC ID '{plcId}' not found.");
+
+            doc.BrowsedTags = newBrowsedTags.Select(t => new PlcTagDocument
+            {
+                Id = t.Id,
+                Name = t.Name,
+                Datatype = t.Datatype,
+                Address = t.Address
+            }).ToList();
+
+            col.Update(doc);
+        });
     }
 }

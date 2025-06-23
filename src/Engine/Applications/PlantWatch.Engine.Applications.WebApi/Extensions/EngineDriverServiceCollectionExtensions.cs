@@ -1,19 +1,22 @@
-using System;
+
 using Microsoft.Extensions.DependencyInjection;
-using PlantWatch.Engine.Core.Factories;
-using PlantWatch.Engine.Core.Interfaces;
-using PlantWatch.DriverRuntime.Configurations;
+using PlantWatch.DriverRuntime;
 using PlantWatch.DriverRuntime.Interfaces;
 using PlantWatch.DriverRuntime.Repositories;
-using PlantWatch.Engine.Drivers.Siemens.Factories;
-using PlantWatch.Engine.Drivers.Siemens.Validators;
+using PlantWatch.Engine.Core.Factories;
+using PlantWatch.Engine.Core.Interfaces;
+using PlantWatch.Engine.DriverRuntime.Configurations;
+using PlantWatch.Engine.Drivers.Protocols.Siemens.Factories;
+using PlantWatch.Engine.Drivers.Protocols.Siemens.Validators;
 
-namespace PlantWatch.DriverRuntime.Extensions;
+namespace PlantWatch.Engine.Applications.WebApi;
 
-public static class DriverRuntimeServiceCollectionExtensions
+public static class EngineDriverServiceCollectionExtensions
 {
-    public static IServiceCollection AddDriverRuntime(this IServiceCollection services, Action<DriverRuntimeOptions> configure)
+    public static IServiceCollection AddEngineDrivers(this IServiceCollection services, Action<DriverRuntimeOptions> configure)
     {
+        // TODO: aquí movemos todo lo que ya tenías en AddDriverRuntime()
+
         // Bind config options
         var options = new DriverRuntimeOptions();
         configure(options);
@@ -24,28 +27,27 @@ public static class DriverRuntimeServiceCollectionExtensions
             sp => new LiteDbConfigurationRepository(options.LiteDbPath, options.LiteDbPassword));
 
         // Driver Manager & Orchestrator
-
         services.AddSingleton<IDriverOrchestrator, DriverOrchestrator>();
         services.AddSingleton<IDriverManager>(sp =>
         {
             var repo = sp.GetRequiredService<IConfigurationRepository>();
             var manager = new DriverManager(repo);
 
-            // Aquí registras los factories y validators...
+            // Registramos los factories y validators (los de Siemens, etc.)
             manager.RegisterDriverFactory((IDriverFactory)new SiemensPLCServiceFactory(), new SiemensConfigurationValidator());
 
-            // 🔥 Cargamos los drivers al momento de registrarlo
+            // 🔥 Cargamos los drivers al arrancar
             manager.ReloadDriversAsync().GetAwaiter().GetResult();
 
             return manager;
         });
 
-        services.AddSingleton<PlantWatch.Engine.Core.Factories.IDriverFactory, SiemensPLCServiceFactory>();
-        services.AddSingleton<PlantWatch.Engine.Core.Validators.IConfigurationValidator, SiemensConfigurationValidator>();
+        // Si el día de mañana hay más factories, se registran aquí
 
-        // Inicializador en background
         services.AddHostedService<DriverManagerInitializer>();
 
         return services;
     }
+
+
 }

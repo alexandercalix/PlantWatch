@@ -5,6 +5,7 @@ using PlantWatch.Engine.Core.Services.Drivers;
 using PlantWatch.Engine.Core.Validators;
 using PlantWatch.DriverRuntime.Interfaces;
 using PlantWatch.DriverRuntime.Models;
+using System.Text.Json;
 
 namespace PlantWatch.DriverRuntime;
 
@@ -19,6 +20,9 @@ public interface IDriverManager
     IEnumerable<IDriverDiagnostics> GetAllDiagnostics();
 
     IDriverDiagnostics GetDiagnostics(Guid plcId);
+
+    Task<bool> WriteTagAsync(Guid plcId, Guid tagId, object value);
+
 }
 public class DriverManager : IDriverManager
 {
@@ -34,6 +38,7 @@ public class DriverManager : IDriverManager
 
     public void RegisterDriverFactory(IDriverFactory factory, IConfigurationValidator validator)
     {
+
         _driverHandlers[factory.DriverType] = (factory, validator);
         Console.WriteLine($"[DriverManager] Registered driver factory for {factory.DriverType}");
     }
@@ -49,6 +54,7 @@ public class DriverManager : IDriverManager
 
         foreach (var config in configs)
         {
+            Console.WriteLine($"[DriverManager] Processing PLC configuration: {config.Name} ({config.Id})");
             if (!_driverHandlers.TryGetValue(config.DriverType, out var handler))
             {
                 Console.WriteLine($"[DriverManager] No factory registered for driver type: {config.DriverType}");
@@ -60,6 +66,7 @@ public class DriverManager : IDriverManager
                 await handler.Validator.ValidatePlcDefinitionAsync(config);
                 var driver = handler.Factory.CreateDriver(config);
                 _plcDrivers.Add(driver);
+                await Task.Delay(1000);
                 await driver.StartAsync();
                 Console.WriteLine($"[DriverManager] Started driver for PLC '{config.Name}'");
             }
@@ -82,5 +89,21 @@ public class DriverManager : IDriverManager
     {
         var driver = _plcDrivers.FirstOrDefault(d => d.Id == plcId);
         return driver as IDriverDiagnostics;
+    }
+
+    public async Task<bool> WriteTagAsync(Guid plcId, Guid tagId, object value)
+    {
+
+        foreach (var driver in _plcDrivers)
+        {
+            Console.WriteLine($"[DriverManager] Checking driver {driver.Name} and Id: {driver.Id} for PLC {plcId}");
+        }
+
+        var plc = _plcDrivers.FirstOrDefault(p => p.Id == plcId);
+
+        if (plc == null)
+            throw new ArgumentException($"PLC not found: {plcId}");
+
+        return await plc.WriteTagAsync(tagId, value);
     }
 }
