@@ -10,11 +10,6 @@ using PlantWatch.DriverRuntime;
 var builder = WebApplication.CreateBuilder(args);
 
 
-builder.Services
-    .AddControllers()
-    .AddApplicationPart(typeof(PlantWatch.Engine.Applications.WebApi.Controllers.DiagnosticsController).Assembly)
-    .AddApplicationPart(typeof(PlantWatch.Engine.Applications.WebApi.Controllers.PlcConfigurationController).Assembly)
-    .AddApplicationPart(typeof(PlantWatch.Engine.Applications.WebApi.Controllers.TagsController).Assembly);
 
 // Aquí levantamos el runtime completo
 builder.Services.AddEngineDrivers(options =>

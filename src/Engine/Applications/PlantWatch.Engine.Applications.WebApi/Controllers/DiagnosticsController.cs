@@ -19,30 +19,84 @@ public class DiagnosticsController : ControllerBase
     [HttpGet("plcs")]
     public async Task<IActionResult> GetAllPlcDiagnostics()
     {
-        var diagnostics = await _orchestrator.GetDiagnosticsAsync();
-        return Ok(diagnostics);
+        try
+        {
+            var diagnostics = await _orchestrator.GetDiagnosticsAsync();
+            return Ok(new EngineOperationResult()
+            {
+                Success = true,
+                Message = "Diagnostics retrieved successfully",
+                Data = diagnostics
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new EngineOperationResult() { Success = false, Message = "Error retrieving diagnostics", Data = ex.Message });
+        }
+
     }
 
     [HttpGet("plc/{plcId}")]
     public async Task<IActionResult> GetPlcDiagnostics(Guid plcId)
     {
-        var diagnostic = await _orchestrator.GetDiagnosticsAsync(plcId);
-        if (diagnostic == null)
-            return NotFound();
+        try
+        {
+            var diagnostic = await _orchestrator.GetDiagnosticsAsync(plcId);
+            if (diagnostic == null)
+                return NotFound(new EngineOperationResult()
+                {
+                    Success = false,
+                    Message = $"PLC with Id {plcId} not found.",
+                    Data = null
+                });
 
-        return Ok(diagnostic);
+            return Ok(new EngineOperationResult()
+            {
+                Success = true,
+                Message = "PLC diagnostic retrieved successfully",
+                Data = diagnostic
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new EngineOperationResult()
+            {
+                Success = false,
+                Message = "Error retrieving PLC diagnostic",
+                Data = ex.Message
+            });
+        }
     }
+
 
     [HttpGet("basic")]
-    public IActionResult GetBasicDiagnostics()
+    public async Task<IActionResult> GetBasicDiagnostics()
     {
-        var diagnostics = _orchestrator.GetDiagnosticsAsync().Result;
-        var basicDiagnostics = diagnostics.Select(d => new PlcConnection()
+        try
         {
-            Id = d.Id,
-            IsConnected = d.IsConnected
-        }).ToList();
+            var diagnostics = await _orchestrator.GetDiagnosticsAsync();
+            var basicDiagnostics = diagnostics.Select(d => new PlcConnection()
+            {
+                Id = d.Id,
+                IsConnected = d.IsConnected
+            }).ToList();
 
-        return Ok(basicDiagnostics);
+            return Ok(new EngineOperationResult()
+            {
+                Success = true,
+                Message = "Basic diagnostics retrieved successfully",
+                Data = basicDiagnostics
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new EngineOperationResult()
+            {
+                Success = false,
+                Message = "Error retrieving basic diagnostics",
+                Data = ex.Message
+            });
+        }
     }
+
 }
