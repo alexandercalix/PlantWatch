@@ -1,8 +1,12 @@
 using System;
 using System.Linq;
+using PlantWatch.Core;
+using PlantWatch.Core.Interfaces.Engine.Services;
 using PlantWatch.Engine.Core.Factories;
+using PlantWatch.Engine.Core.Interfaces;
 using PlantWatch.Engine.Core.Models.Definitions;
-using PlantWatch.Engine.Core.Services.Drivers;
+using PlantWatch.Engine.Drivers.Core.Descriptors;
+using PlantWatch.Engine.Drivers.Protocols.Siemens.Descriptors;
 using PlantWatch.Engine.Drivers.Protocols.Siemens.Services;
 
 namespace PlantWatch.Engine.Drivers.Protocols.Siemens.Factories;
@@ -10,6 +14,10 @@ namespace PlantWatch.Engine.Drivers.Protocols.Siemens.Factories;
 public class SiemensPLCServiceFactory : IDriverFactory
 {
     public string DriverType => "Siemens";
+
+    public IDriverCapabilities GetCapabilities() => new SiemensDriverCapabilities();
+    public IPlcConfigurationDescriptor GetPlcDescriptor() => new SiemensPlcConfigurationDescriptor();
+    public ITagValidationDescriptor GetTagDescriptor() => new SiemensTagValidationDescriptor();
 
     public IPLCService CreateDriver(PlcConnectionDefinition config)
     {

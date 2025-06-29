@@ -1,11 +1,12 @@
 using System;
 using PlantWatch.Engine.Core.Factories;
 using PlantWatch.Engine.Core.Interfaces;
-using PlantWatch.Engine.Core.Services.Drivers;
 using PlantWatch.Engine.Core.Validators;
 using PlantWatch.DriverRuntime.Interfaces;
 using PlantWatch.DriverRuntime.Models;
 using System.Text.Json;
+using PlantWatch.Core;
+using PlantWatch.Core.Interfaces.Engine.Services;
 
 namespace PlantWatch.DriverRuntime;
 
@@ -22,6 +23,9 @@ public interface IDriverManager
     IDriverDiagnostics GetDiagnostics(Guid plcId);
 
     Task<bool> WriteTagAsync(Guid plcId, Guid tagId, object value);
+
+    IEnumerable<IDriverFactory> GetAllFactories();
+
 
 }
 public class DriverManager : IDriverManager
@@ -106,4 +110,11 @@ public class DriverManager : IDriverManager
 
         return await plc.WriteTagAsync(tagId, value);
     }
+
+    public IEnumerable<IDriverFactory> GetAllFactories()
+    {
+        return _driverHandlers.Values.Select(v => v.Factory);
+
+    }
+
 }

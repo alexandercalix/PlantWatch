@@ -8,4 +8,8 @@
     <Folder Include="Managers/" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="../../../Core/PlantWatch.Core/PlantWatch.Core.csproj" />
+  </ItemGroup>
+
 </Project>

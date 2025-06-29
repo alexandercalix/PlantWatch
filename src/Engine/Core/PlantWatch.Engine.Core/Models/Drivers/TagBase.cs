@@ -1,7 +1,8 @@
 
 using System;
 using System.Text.Json;
-
+using PlantWatch.Core.Interfaces;
+using PlantWatch.Core.Interfaces.Engine.Models;
 namespace PlantWatch.Engine.Core.Models.Drivers
 {
     public abstract class TagBase : ITag
