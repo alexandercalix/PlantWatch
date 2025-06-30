@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../Drivers/PlantWatch.Engine.DriverRuntime/PlantWatch.Engine.DriverRuntime.csproj" />
+    <ProjectReference Include="../../../Data/Drivers/PlantWatch.Engine.Data.Drivers.MsSql/PlantWatch.Engine.Data.Drivers.MsSql.csproj" />
   </ItemGroup>
 
   <ItemGroup>

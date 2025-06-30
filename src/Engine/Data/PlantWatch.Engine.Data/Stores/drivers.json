@@ -1,0 +1,11 @@
+{
+  "Databases": [
+    {
+      "Name": "MainSql",
+      "DriverType": "SqlServer",
+      "Parameters": {
+        "ConnectionString": "Server=.;Database=TestDb;Trusted_Connection=True;"
+      }
+    }
+  ]
+}

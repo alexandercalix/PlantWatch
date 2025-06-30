@@ -5,12 +5,10 @@ using System.Threading.Tasks;
 using Moq;
 using PlantWatch.Engine.Core.Interfaces;
 using PlantWatch.Engine.Core.Models.Definitions;
-using PlantWatch.DriverRuntime;
-using PlantWatch.DriverRuntime.Interfaces;
-using PlantWatch.Engine.Core.Services.Drivers;
-using Xunit;
+
 using PlantWatch.Engine.Core.Validators;
 using PlantWatch.Engine.Core.Factories;
+using PlantWatch.Core.Interfaces.Engine.Services;
 
 namespace PlantWatch.DriverRuntime.Tests;
 

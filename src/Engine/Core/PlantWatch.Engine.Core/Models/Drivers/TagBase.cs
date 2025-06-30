@@ -3,6 +3,7 @@ using System;
 using System.Text.Json;
 using PlantWatch.Core.Interfaces;
 using PlantWatch.Core.Interfaces.Engine.Models;
+using PlantWatch.Core.Models.Tags;
 namespace PlantWatch.Engine.Core.Models.Drivers
 {
     public abstract class TagBase : ITag
@@ -27,7 +28,7 @@ namespace PlantWatch.Engine.Core.Models.Drivers
                     _value = convertedValue;
                     OnValueAssigned(convertedValue);
                     LastChangeTimestamp = DateTime.UtcNow;
-                    OnValueChanged?.Invoke(this, new TagChangeEventArgs(this, convertedValue));
+                    OnValueChanged?.Invoke(this, new ValueChangedEventArgs(this, convertedValue));
                 }
                 else
                 {
@@ -47,7 +48,7 @@ namespace PlantWatch.Engine.Core.Models.Drivers
         private DateTime _lastEventTimestamp = DateTime.UtcNow;
         protected virtual void OnValueAssigned(object convertedValue) { }
 
-        public event EventHandler<TagChangeEventArgs> OnValueChanged;
+        public event EventHandler<ValueChangedEventArgs> OnValueChanged;
 
         protected TagBase(Guid id, string name, string datatype, string address)
         {
@@ -144,18 +145,5 @@ namespace PlantWatch.Engine.Core.Models.Drivers
         protected abstract bool IsCompatibleType(object value);
     }
 
-    /// <summary>
-    /// Argumento de evento para cambios de tag
-    /// </summary>
-    public class TagChangeEventArgs : EventArgs
-    {
-        public ITag Tag { get; }
-        public object NewValue { get; }
 
-        public TagChangeEventArgs(ITag tag, object newValue)
-        {
-            Tag = tag;
-            NewValue = newValue;
-        }
-    }
 }
