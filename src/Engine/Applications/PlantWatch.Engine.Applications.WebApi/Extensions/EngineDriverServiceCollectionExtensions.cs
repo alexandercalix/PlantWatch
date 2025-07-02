@@ -15,7 +15,6 @@ public static class EngineDriverServiceCollectionExtensions
 {
     public static IServiceCollection AddEngineDrivers(this IServiceCollection services, Action<DriverRuntimeOptions> configure)
     {
-        // TODO: aquí movemos todo lo que ya tenías en AddDriverRuntime()
 
         // Bind config options
         var options = new DriverRuntimeOptions();

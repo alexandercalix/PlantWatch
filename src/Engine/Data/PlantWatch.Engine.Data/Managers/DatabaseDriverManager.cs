@@ -7,12 +7,43 @@ namespace PlantWatch.Engine.Data.Managers;
 
 public class DatabaseDriverManager
 {
-    private readonly ConcurrentDictionary<string, IDatabaseDriver> _drivers = new(StringComparer.OrdinalIgnoreCase);
+    private readonly IDatabaseConfigurationRepository _configRepository;
 
-    public void RegisterDriver(IDatabaseDriver driver)
+
+    private readonly ConcurrentDictionary<string, IDatabaseDriver> _drivers = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, IDatabaseDriverFactory> _factories = new(StringComparer.OrdinalIgnoreCase);
+
+    public DatabaseDriverManager(IDatabaseConfigurationRepository configRepository)
     {
-        _drivers[driver.Name] = driver;
+        _configRepository = configRepository;
     }
+
+    public void RegisterDriverFactory(IDatabaseDriverFactory factory)
+    {
+
+        _factories[factory.DriverType] = factory;
+        Console.WriteLine($"[DriverManager] Registered driver factory for {factory.DriverType}");
+    }
+
+    public async Task ReloadDriversAsync()
+    {
+        _drivers.Clear();
+
+        var configs = await _configRepository.LoadAllDatabaseConfigurationsAsync();
+
+        foreach (var config in configs)
+        {
+            if (!_factories.TryGetValue(config.DriverType, out var factory))
+                throw new InvalidOperationException($"No factory registered for driver type '{config.DriverType}'");
+
+            var driver = factory.Create(config);
+            if (driver == null)
+                throw new InvalidOperationException($"Failed to create driver for '{config.Name}'");
+
+            _drivers[config.Name] = driver;
+        }
+    }
+
 
     public IDatabaseDriver? GetDriver(string name)
     {
@@ -31,12 +62,6 @@ public class DatabaseDriverManager
         var driver = GetDriver(driverName);
         if (driver == null)
             return ExecutionResult.Fail($"Driver '{driverName}' not found.");
-
-        if (!driver.IsOnline())
-            return ExecutionResult.Fail($"Driver '{driverName}' is offline.");
-
-        if (!driver.ValidateCommand(command))
-            return ExecutionResult.Fail($"Invalid command for '{driverName}'.");
 
         return await driver.ExecuteAsync(command);
     }

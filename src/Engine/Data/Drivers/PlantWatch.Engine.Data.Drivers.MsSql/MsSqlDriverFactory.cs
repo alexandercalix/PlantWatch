@@ -1,4 +1,5 @@
 using System;
+using PlantWatch.Engine.Core.Data;
 using PlantWatch.Engine.Core.Data.Interfaces;
 using PlantWatch.Engine.Core.Data.Models;
 using PlantWatch.Engine.Data.Drivers.MsSql.Internals;
@@ -7,6 +8,7 @@ namespace PlantWatch.Engine.Data.Drivers.MsSql;
 
 public class MsSqlDriverFactory : IDatabaseDriverFactory
 {
+    public string DriverType => "SqlServer";
     public bool CanHandle(string driverType) =>
         driverType.Equals("SqlServer", StringComparison.OrdinalIgnoreCase);
 
@@ -25,5 +27,24 @@ public class MsSqlDriverFactory : IDatabaseDriverFactory
      new MsSqlExecutor(connStr),
      new MsSqlDiagnostics(connStr)
  );
+    }
+    public IDatabaseDriverDescriptor GetDriverDescriptor()
+    {
+        return new DriverDescriptor
+        {
+            DriverType = "SqlServer",
+            FriendlyName = "Microsoft SQL Server",
+            Parameters = new List<DriverParameterDefinition>
+            {
+                new()
+                {
+                    Key = "ConnectionString",
+                    DisplayName = "Connection String",
+                    Type = "string",
+                    IsRequired = true,
+                    Placeholder = "Server=localhost;Database=Test;User Id=sa;Password=pass;"
+                }
+            }
+        };
     }
 }

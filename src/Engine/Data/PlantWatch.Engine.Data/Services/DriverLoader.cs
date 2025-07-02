@@ -24,19 +24,22 @@ public static class DriverLoader
 
         foreach (var db in config.Databases)
         {
-            if (db.DriverType.Equals("SqlServer", StringComparison.OrdinalIgnoreCase))
+            if (_factoryManager.TryGetFactory(db.DriverType, out var factory))
             {
-                if (db.Parameters.TryGetValue("ConnectionString", out var connStr))
+                try
                 {
-                    var validator = new MsSqlValidator();
-                    var executor = new MsSqlExecutor(connStr);
-                    var diagnostics = new MsSqlDiagnostics(connStr);
-
-                    drivers.Add(new MsSqlDriver(db.Name, validator, executor, diagnostics));
+                    var driver = factory.Create(db);
+                    drivers.Add(driver);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[DataDriverLoader] Error creating driver '{db.Name}': {ex.Message}");
                 }
             }
-
-            // 🚀 Aquí se añadirán más drivers internos (Influx, Mongo, etc.)
+            else
+            {
+                Console.WriteLine($"[DataDriverLoader] No factory for driver type: {db.DriverType}");
+            }
         }
 
         return drivers;
