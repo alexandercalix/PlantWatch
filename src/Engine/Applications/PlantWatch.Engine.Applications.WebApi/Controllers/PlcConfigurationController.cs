@@ -1,6 +1,7 @@
 using System;
 using Microsoft.AspNetCore.Mvc;
 using PlantWatch.DriverRuntime.Interfaces;
+using PlantWatch.Engine.Applications.Common.DTOs;
 using PlantWatch.Engine.Applications.WebApi.DTOs;
 using PlantWatch.Engine.Core.Models.Definitions;
 

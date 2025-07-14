@@ -13,7 +13,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../../Core/PlantWatch.Engine.Core/PlantWatch.Engine.Core.csproj" />
     <ProjectReference Include="../../Data/PlantWatch.Engine.Data/PlantWatch.Engine.Data.csproj" />
+    <ProjectReference Include="../PlantWatch.Engine.Applications.Common/PlantWatch.Engine.Applications.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="DTOs/" />
   </ItemGroup>
 
 </Project>

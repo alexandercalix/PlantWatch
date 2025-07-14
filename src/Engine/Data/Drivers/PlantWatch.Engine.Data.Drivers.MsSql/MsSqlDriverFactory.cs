@@ -9,6 +9,7 @@ namespace PlantWatch.Engine.Data.Drivers.MsSql;
 public class MsSqlDriverFactory : IDatabaseDriverFactory
 {
     public string DriverType => "SqlServer";
+
     public bool CanHandle(string driverType) =>
         driverType.Equals("SqlServer", StringComparison.OrdinalIgnoreCase);
 
@@ -19,15 +20,20 @@ public class MsSqlDriverFactory : IDatabaseDriverFactory
 
         var validator = new MsSqlValidator();
         var executor = new MsSqlExecutor(connStr);
-        var diagnostics = new MsSqlDiagnostics(connStr);
+        var diagnostics = new MsSqlDriverDiagnostics(id: config.Id,
+            name: config.Name,
+            isOnline: false, // Initial state, will be updated by diagnostics
+            lastError: null); // No errors initially
 
         return new MsSqlDriver(
-     config.Name,
-     new MsSqlValidator(),
-     new MsSqlExecutor(connStr),
-     new MsSqlDiagnostics(connStr)
- );
+            id: config.Id,
+            name: config.Name,
+            validator: validator,
+            executor: executor,
+            diagnostics: diagnostics
+        );
     }
+
     public IDatabaseDriverDescriptor GetDriverDescriptor()
     {
         return new DriverDescriptor
@@ -48,3 +54,4 @@ public class MsSqlDriverFactory : IDatabaseDriverFactory
         };
     }
 }
+

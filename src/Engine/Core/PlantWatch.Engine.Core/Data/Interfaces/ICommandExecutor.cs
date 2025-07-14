@@ -7,4 +7,5 @@ namespace PlantWatch.Engine.Core.Data.Interfaces;
 public interface ICommandExecutor
 {
     Task<ExecutionResult> ExecuteAsync(string command);
+    Task<ExecutionResult> GetSchemaAsync();
 }

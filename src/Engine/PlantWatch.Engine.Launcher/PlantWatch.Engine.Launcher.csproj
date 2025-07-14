@@ -1,14 +1,29 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
+    <PackageReference Include="Blazored.Modal" Version="7.3.1" />
+    <PackageReference Include="Blazored.Toast" Version="4.2.1" />
+    <PackageReference Include="FluentValidation" Version="12.0.0" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
+    <PackageReference Include="MudBlazor" Version="8.9.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../Core/PlantWatch.Core/PlantWatch.Core.csproj" />
+    <ProjectReference Include="../Applications/PlantWatch.Engine.Applications.Data.WebApi/PlantWatch.Engine.Applications.Data.WebApi.csproj" />
     <ProjectReference Include="../Applications/PlantWatch.Engine.Applications.WebApi/PlantWatch.Engine.Applications.WebApi.csproj" />
+    <ProjectReference Include="../Core/PlantWatch.Engine.Core/PlantWatch.Engine.Core.csproj" />
+    <ProjectReference Include="../Data/PlantWatch.Engine.Data/PlantWatch.Engine.Data.csproj" />
+    <ProjectReference Include="../Drivers/PlantWatch.Engine.DriverRuntime/PlantWatch.Engine.DriverRuntime.csproj" />
   </ItemGroup>
 
 </Project>

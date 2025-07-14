@@ -3,9 +3,9 @@ using Microsoft.Extensions.DependencyInjection;
 using PlantWatch.DriverRuntime;
 using PlantWatch.DriverRuntime.Interfaces;
 using PlantWatch.DriverRuntime.Repositories;
+using PlantWatch.Engine.Core.Common;
 using PlantWatch.Engine.Core.Factories;
 using PlantWatch.Engine.Core.Interfaces;
-using PlantWatch.Engine.DriverRuntime.Configurations;
 using PlantWatch.Engine.Drivers.Protocols.Siemens.Factories;
 using PlantWatch.Engine.Drivers.Protocols.Siemens.Validators;
 
@@ -13,11 +13,11 @@ namespace PlantWatch.Engine.Applications.WebApi;
 
 public static class EngineDriverServiceCollectionExtensions
 {
-    public static IServiceCollection AddEngineDrivers(this IServiceCollection services, Action<DriverRuntimeOptions> configure)
+    public static IServiceCollection AddEngineDrivers(this IServiceCollection services, Action<StorageConfigurationOptions> configure)
     {
 
         // Bind config options
-        var options = new DriverRuntimeOptions();
+        var options = new StorageConfigurationOptions();
         configure(options);
         services.AddSingleton(options);
 

@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Moq;
 using PlantWatch.Engine.Core.Data.Interfaces;
 using PlantWatch.Engine.Core.Data.Models;
@@ -10,11 +11,19 @@ public class MsSqlDriverTests
 {
     private readonly Mock<ICommandValidator> _mockValidator = new();
     private readonly Mock<ICommandExecutor> _mockExecutor = new();
-    private readonly Mock<IDatabaseDiagnostics> _mockDiagnostics = new();
+    private readonly Mock<IDatabaseDriverDiagnostics> _mockDiagnostics = new();
+
+    private readonly Guid _driverId = Guid.NewGuid();
 
     private MsSqlDriver CreateDriver(string name = "mssql")
     {
-        return new MsSqlDriver(name, _mockValidator.Object, _mockExecutor.Object, _mockDiagnostics.Object);
+        return new MsSqlDriver(
+            id: _driverId,
+            name: name,
+            validator: _mockValidator.Object,
+            executor: _mockExecutor.Object,
+            diagnostics: _mockDiagnostics.Object
+        );
     }
 
     [Fact]
@@ -47,21 +56,21 @@ public class MsSqlDriverTests
     }
 
     [Fact]
-    public void IsOnline_ReturnsTrue_WhenDiagnosticsSaysOnline()
+    public async Task IsOnline_ReturnsTrue_WhenDiagnosticsSaysOnline()
     {
-        _mockDiagnostics.Setup(d => d.IsOnline()).Returns(true);
+        _mockDiagnostics.Setup(d => d.IsOnline).Returns(true);
         var driver = CreateDriver();
 
-        Assert.True(driver.IsOnline());
+        Assert.True(await driver.IsOnline());
     }
 
     [Fact]
-    public void IsOnline_ReturnsFalse_WhenDiagnosticsFails()
+    public async Task IsOnline_ReturnsFalse_WhenDiagnosticsFails()
     {
-        _mockDiagnostics.Setup(d => d.IsOnline()).Returns(false);
+        _mockDiagnostics.Setup(d => d.IsOnline).Returns(false);
         var driver = CreateDriver();
 
-        Assert.False(driver.IsOnline());
+        Assert.False(await driver.IsOnline());
     }
 
     [Fact]
@@ -75,5 +84,12 @@ public class MsSqlDriverTests
 
         Assert.True(result.Success);
         Assert.Equal(1, ((dynamic)result.Data).AffectedRows);
+    }
+
+    [Fact]
+    public void Driver_Id_IsCorrect()
+    {
+        var driver = CreateDriver();
+        Assert.Equal(_driverId, driver.Id);
     }
 }

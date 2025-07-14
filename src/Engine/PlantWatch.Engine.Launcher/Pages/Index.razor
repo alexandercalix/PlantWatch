@@ -1,0 +1,58 @@
+﻿@page "/"
+@using PlantWatch.Core.Interfaces.Engine.Services
+@using PlantWatch.DriverRuntime
+@using PlantWatch.Engine.Core.Data.Interfaces
+@using PlantWatch.Engine.Core.Data.Models
+@using PlantWatch.Engine.Drivers;
+
+@inject IDriverManager DriverManager;
+@inject IDatabaseDriverManager DBManager;
+
+@if (plcServices == null)
+{
+    <p>Loading PLC Services...</p>
+}
+else
+{
+    <h3>Available PLC Services @plcServices.Count()</h3>
+    <ul>
+        @foreach (var service in plcServices)
+        {
+            <li>@service.Name</li>
+        }
+    </ul>
+}
+
+@if (dbDescriptors == null)
+{
+    <p>Loading Database Drivers...</p>
+}
+else
+{
+    <h3>Available Database Drivers @dbDescriptors.Count()</h3>
+    <ul>
+        @foreach (var descriptor in dbDescriptors)
+        {
+            <li>@descriptor.Key - @descriptor.Value.DriverType</li>
+        }
+    </ul>
+}
+
+
+@code {
+
+    IEnumerable<IPLCService> plcServices;
+    Dictionary<string, IDatabaseDriverDescriptor> dbDescriptors;
+
+    protected override async Task OnInitializedAsync()
+    {
+        IEnumerable<IPLCService> plcServices = DriverManager.GetAllDrivers();
+        this.plcServices = plcServices;
+
+
+        var dbdescriptors = DBManager.GetDriverDescriptors();
+        this.dbDescriptors = dbdescriptors;
+
+        StateHasChanged();
+    }
+}

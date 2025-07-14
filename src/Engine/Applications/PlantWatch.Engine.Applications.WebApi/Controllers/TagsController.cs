@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using PlantWatch.DriverRuntime;
 using PlantWatch.DriverRuntime.Interfaces;
+using PlantWatch.Engine.Applications.Common.DTOs;
 using PlantWatch.Engine.Applications.WebApi.DTOs;
 
 namespace PlantWatch.Engine.Applications.WebApi.Controllers;
